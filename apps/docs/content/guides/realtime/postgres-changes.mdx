@@ -957,6 +957,225 @@ changes = supabase.channel('db-changes').on_postgres_changes(
 
 Realtime offers filters so you can specify the data your client receives at a more granular level.
 
+<Admonition type="note">
+
+All filters are evaluated server-side from a filter string, so any SDK that accepts a raw filter string can use them: `supabase-js` (as a string or via the `postgresChangesFilter()` builder), Kotlin, and Python. The Dart and Swift SDKs use a typed filter builder that currently covers only the core comparison operators (`eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `in`) and does not expose a raw-string option, so the additional operators (`like`, `ilike`, `is`, `match`, `imatch`, `isdistinct`), the `not.` prefix, and multi-filter `AND` composition are not available in those SDKs yet.
+
+</Admonition>
+
+### Combining filters (AND)
+
+You can combine multiple filters in a single subscription by separating them with a comma. All conditions must match for an event to be delivered (logical AND). For example, `id=gt.10,id=lt.100` receives events where the `id` is between 11 and 99.
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="js"
+  queryGroup="language"
+>
+<TabPanel id="js" label="JavaScript">
+
+```js
+const channel = supabase
+  .channel('changes')
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'products',
+      filter: 'quantity=gt.10,quantity=lt.100',
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+</TabPanel>
+<$Show if="sdk:dart">
+<TabPanel id="dart" label="Dart">
+
+<Admonition type="note">
+
+The Dart SDK's typed `PostgresChangeFilter` accepts a single condition (`eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `in`) and has no raw-string escape hatch, so AND composition is not available. Subscribe with a single filter and apply the remaining conditions client-side inside your callback.
+
+</Admonition>
+
+```dart
+supabase
+    .channel('changes')
+    .onPostgresChanges(
+        event: PostgresChangeEvent.insert,
+        schema: 'public',
+        table: 'products',
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.gt,
+          column: 'quantity',
+          value: 10,
+        ),
+        callback: (payload) => print(payload))
+    .subscribe();
+```
+
+</TabPanel>
+</$Show>
+<$Show if="sdk:kotlin">
+<TabPanel id="kotlin" label="Kotlin">
+
+```kotlin
+val myChannel = supabase.channel("db-changes")
+
+val changes = myChannel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+    table = "products"
+    filter = "quantity=gt.10,quantity=lt.100"
+}
+
+changes
+    .onEach {
+        println(it.record)
+    }
+    .launchIn(yourCoroutineScope)
+
+myChannel.subscribe()
+```
+
+</TabPanel>
+</$Show>
+<$Show if="sdk:python">
+<TabPanel id="python" label="Python">
+
+```python
+changes = supabase.channel('db-changes').on_postgres_changes(
+  "INSERT",
+  schema="public",
+  table="products",
+  filter="quantity=gt.10,quantity=lt.100",
+  callback=lambda payload: print(payload)
+)
+.subscribe()
+```
+
+</TabPanel>
+</$Show>
+</Tabs>
+
+Commas inside an `in` filter list are not treated as AND boundaries — `name=in.(red,blue,yellow)` is correctly parsed as a single `in` filter. You can also combine `in` with other filters:
+
+```js
+filter: 'name=in.(red,blue),quantity=gt.0'
+```
+
+An empty or whitespace-only filter string is treated the same as providing no filter at all — the subscription will receive all matching events without any column filtering.
+
+#### Values with reserved characters
+
+The server splits conditions on commas that appear outside quotes and parentheses. To include a reserved character (`,`, `(`, `)`) in a value, wrap the value in double quotes PostgREST-style. Literal double quotes and backslashes inside the value are escaped with a backslash:
+
+```js
+// Matches rows where `name` is exactly the string "red,blue"
+filter: 'name=eq."red,blue"'
+```
+
+#### Building filters programmatically (JavaScript)
+
+Instead of assembling the filter string by hand, `supabase-js` (v2.86.0+) ships a `postgresChangesFilter()` builder. It exposes a method per operator, combines conditions with `AND`, and automatically quotes and escapes values that contain reserved characters. Pass the builder straight to `on('postgres_changes', …)` — the SDK serializes it to a string for you.
+
+```js
+import { postgresChangesFilter } from '@supabase/supabase-js'
+
+const channel = supabase
+  .channel('changes')
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'products',
+      // → 'quantity=gt.10,quantity=lt.100'
+      filter: postgresChangesFilter().gt('quantity', 10).lt('quantity', 100),
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+Call `.build()` (or `.toString()`) if you need the raw string yourself. An empty builder serializes to `''`, which the server treats as "no filter".
+
+### Negating a filter (`not`)
+
+Any operator can be negated with the `not.` prefix, mirroring PostgREST. The condition passes when the underlying comparison is **false**. For example, `status=not.eq.active` receives events for every row whose `status` is not `active`, and `status=not.in.(draft,archived)` receives events for rows whose `status` is neither `draft` nor `archived`.
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="js"
+  queryGroup="language"
+>
+<TabPanel id="js" label="JavaScript">
+
+```js
+const channel = supabase
+  .channel('changes')
+  .on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'orders',
+      filter: 'status=not.in.(draft,archived)',
+      // Or with the builder:
+      // filter: postgresChangesFilter().not('status', 'in', ['draft', 'archived']),
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+</TabPanel>
+<$Show if="sdk:kotlin">
+<TabPanel id="kotlin" label="Kotlin">
+
+```kotlin
+val myChannel = supabase.channel("db-changes")
+
+val changes = myChannel.postgresChangeFlow<PostgresAction.Update>(schema = "public") {
+    table = "orders"
+    filter = "status=not.in.(draft,archived)"
+}
+
+changes
+    .onEach {
+        println(it.record)
+    }
+    .launchIn(yourCoroutineScope)
+
+myChannel.subscribe()
+```
+
+</TabPanel>
+</$Show>
+<$Show if="sdk:python">
+<TabPanel id="python" label="Python">
+
+```python
+changes = supabase.channel('db-changes').on_postgres_changes(
+  "*",
+  schema="public",
+  table="orders",
+  filter="status=not.in.(draft,archived)",
+  callback=lambda payload: print(payload)
+)
+.subscribe()
+```
+
+</TabPanel>
+</$Show>
+</Tabs>
+
+Negation is evaluated server-side, so it works with every operator listed below (`eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `in`, `like`, `ilike`, `is`, `match`, `imatch`, `isdistinct`). SDKs that accept a raw filter string (JavaScript, Kotlin, Python) can use `not.` directly.
+
 ### Equal to (`eq`)
 
 To listen to changes when a column's value in a table equals a client-specified value:
@@ -1762,6 +1981,350 @@ changes = supabase.channel('db-changes').on_postgres_changes(
 </Tabs>
 
 This filter uses Postgres's `= ANY`. Realtime allows a maximum of 100 values for this filter.
+
+### Pattern match (`like` / `ilike`)
+
+To listen to changes when a text column matches a SQL `LIKE` pattern, use `like` (case-sensitive) or `ilike` (case-insensitive). The pattern uses the usual SQL wildcards: `%` matches any sequence of characters and `_` matches a single character.
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="js"
+  queryGroup="language"
+>
+<TabPanel id="js" label="JavaScript">
+
+```js
+const channel = supabase
+  .channel('changes')
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'articles',
+      filter: 'title=ilike.%postgres%',
+      // Or with the builder:
+      // filter: postgresChangesFilter().ilike('title', '%postgres%'),
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+</TabPanel>
+<$Show if="sdk:kotlin">
+<TabPanel id="kotlin" label="Kotlin">
+
+```kotlin
+val myChannel = supabase.channel("db-changes")
+
+val changes = myChannel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+    table = "articles"
+    filter = "title=ilike.%postgres%"
+}
+
+changes
+    .onEach {
+        println(it.record)
+    }
+    .launchIn(yourCoroutineScope)
+
+myChannel.subscribe()
+```
+
+</TabPanel>
+</$Show>
+<$Show if="sdk:python">
+<TabPanel id="python" label="Python">
+
+```python
+changes = supabase.channel('db-changes').on_postgres_changes(
+  "INSERT",
+  schema="public",
+  table="articles",
+  filter="title=ilike.%postgres%",
+  callback=lambda payload: print(payload)
+)
+.subscribe()
+```
+
+</TabPanel>
+</$Show>
+</Tabs>
+
+This filter uses Postgres's `LIKE` / `ILIKE` operators and requires a text-compatible column type.
+
+### Regex match (`match` / `imatch`)
+
+To listen to changes when a text column matches a POSIX regular expression, use `match` (case-sensitive, Postgres `~`) or `imatch` (case-insensitive, Postgres `~*`).
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="js"
+  queryGroup="language"
+>
+<TabPanel id="js" label="JavaScript">
+
+```js
+const channel = supabase
+  .channel('changes')
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'articles',
+      filter: 'slug=match.^post-[0-9]+$',
+      // Or with the builder:
+      // filter: postgresChangesFilter().match('slug', '^post-[0-9]+$'),
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+</TabPanel>
+<$Show if="sdk:kotlin">
+<TabPanel id="kotlin" label="Kotlin">
+
+```kotlin
+val myChannel = supabase.channel("db-changes")
+
+val changes = myChannel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+    table = "articles"
+    filter = "slug=match.^post-[0-9]+$"
+}
+
+changes
+    .onEach {
+        println(it.record)
+    }
+    .launchIn(yourCoroutineScope)
+
+myChannel.subscribe()
+```
+
+</TabPanel>
+</$Show>
+<$Show if="sdk:python">
+<TabPanel id="python" label="Python">
+
+```python
+changes = supabase.channel('db-changes').on_postgres_changes(
+  "INSERT",
+  schema="public",
+  table="articles",
+  filter="slug=match.^post-[0-9]+$",
+  callback=lambda payload: print(payload)
+)
+.subscribe()
+```
+
+</TabPanel>
+</$Show>
+</Tabs>
+
+This filter uses Postgres's `~` / `~*` operators and requires a text-compatible column type. The regular expression is validated when you subscribe, so an invalid pattern is rejected immediately.
+
+### Is (`is`)
+
+To listen to changes when a column `IS` a specific state, use `is`. The value must be one of `null`, `true`, `false`, or `unknown`. `is.null` works on any column type; `is.true`, `is.false`, and `is.unknown` require a boolean column.
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="js"
+  queryGroup="language"
+>
+<TabPanel id="js" label="JavaScript">
+
+```js
+const channel = supabase
+  .channel('changes')
+  .on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'tasks',
+      filter: 'completed_at=is.null',
+      // Or with the builder:
+      // filter: postgresChangesFilter().is('completed_at', null),
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+</TabPanel>
+<$Show if="sdk:kotlin">
+<TabPanel id="kotlin" label="Kotlin">
+
+```kotlin
+val myChannel = supabase.channel("db-changes")
+
+val changes = myChannel.postgresChangeFlow<PostgresAction.Update>(schema = "public") {
+    table = "tasks"
+    filter = "completed_at=is.null"
+}
+
+changes
+    .onEach {
+        println(it.record)
+    }
+    .launchIn(yourCoroutineScope)
+
+myChannel.subscribe()
+```
+
+</TabPanel>
+</$Show>
+<$Show if="sdk:python">
+<TabPanel id="python" label="Python">
+
+```python
+changes = supabase.channel('db-changes').on_postgres_changes(
+  "*",
+  schema="public",
+  table="tasks",
+  filter="completed_at=is.null",
+  callback=lambda payload: print(payload)
+)
+.subscribe()
+```
+
+</TabPanel>
+</$Show>
+</Tabs>
+
+This filter uses Postgres's `IS` operator. Combine it with `not.` to match the opposite — for example `completed_at=not.is.null` receives events only for rows where `completed_at` has a value.
+
+### Distinct from (`isdistinct`)
+
+To listen to changes using a NULL-safe inequality, use `isdistinct`, which maps to Postgres's `IS DISTINCT FROM`. Unlike `neq`, it treats `NULL` as a comparable value, so `priority=isdistinct.1` also matches rows where `priority` is `NULL`.
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="js"
+  queryGroup="language"
+>
+<TabPanel id="js" label="JavaScript">
+
+```js
+const channel = supabase
+  .channel('changes')
+  .on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'tasks',
+      filter: 'priority=isdistinct.1',
+      // Or with the builder:
+      // filter: postgresChangesFilter().isDistinct('priority', 1),
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+</TabPanel>
+<$Show if="sdk:kotlin">
+<TabPanel id="kotlin" label="Kotlin">
+
+```kotlin
+val myChannel = supabase.channel("db-changes")
+
+val changes = myChannel.postgresChangeFlow<PostgresAction.Update>(schema = "public") {
+    table = "tasks"
+    filter = "priority=isdistinct.1"
+}
+
+changes
+    .onEach {
+        println(it.record)
+    }
+    .launchIn(yourCoroutineScope)
+
+myChannel.subscribe()
+```
+
+</TabPanel>
+</$Show>
+<$Show if="sdk:python">
+<TabPanel id="python" label="Python">
+
+```python
+changes = supabase.channel('db-changes').on_postgres_changes(
+  "*",
+  schema="public",
+  table="tasks",
+  filter="priority=isdistinct.1",
+  callback=lambda payload: print(payload)
+)
+.subscribe()
+```
+
+</TabPanel>
+</$Show>
+</Tabs>
+
+This filter uses Postgres's `IS DISTINCT FROM`. Negating it with `not.` (`priority=not.isdistinct.1`) is equivalent to `IS NOT DISTINCT FROM`.
+
+## Selecting specific columns
+
+By default a Postgres Changes event contains the full changed row. You can restrict the payload to a subset of columns with the `select` option — useful for reducing payload size when a table has large `bytea` or `jsonb` columns, or when you only care about a few fields.
+
+<Admonition type="note">
+
+Column selection is currently only available in `supabase-js`. The other client libraries do not support the `select` option yet.
+
+</Admonition>
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="js"
+  queryGroup="language"
+>
+<TabPanel id="js" label="JavaScript">
+
+```js
+const channel = supabase
+  .channel('changes')
+  .on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'users',
+      select: ['id', 'first_name'],
+    },
+    (payload) => {
+      // payload.new only contains { id, first_name }
+      console.log(payload)
+    }
+  )
+  .subscribe()
+```
+
+</TabPanel>
+</Tabs>
+
+Keep the following in mind:
+
+- The listed columns must be selectable by the subscribing role. If a column can't be selected, the subscription is rejected.
+- The table's primary key columns are always included in the payload so events can be correlated, even if you don't list them.
+- Column selection is not supported for wildcard subscriptions — you must provide an explicit `schema` and `table` (not `*`).
+- `select` can be combined with any filter.
 
 ## Receiving `old` records
 
