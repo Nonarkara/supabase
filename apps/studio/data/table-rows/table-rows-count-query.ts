@@ -4,6 +4,7 @@ import { IS_PLATFORM } from 'common'
 
 import { tableRowKeys } from './keys'
 import { formatFilterValue } from './utils'
+import { wrapWithWarehouseSnapshotTime } from './warehouse-time-travel'
 import { parseSupaTable } from '@/components/grid/SupabaseGrid.utils'
 import type { Filter, SupaTable } from '@/components/grid/types'
 import { useConnectionStringForReadOps } from '@/data/read-replicas/replicas-query'
@@ -17,6 +18,7 @@ export type GetTableRowsCountArgs = {
   table?: SupaTable
   filters?: Filter[]
   enforceExactCount?: boolean
+  warehouseSnapshotTime?: string | null
 }
 
 export type TableRowsCount = {
@@ -44,6 +46,7 @@ export async function getTableRowsCount(
     filters,
     roleImpersonationState,
     enforceExactCount,
+    warehouseSnapshotTime,
     isUsingReadReplica = false,
   }: TableRowsCountVariables & { isUsingReadReplica?: boolean },
   signal?: AbortSignal
@@ -60,7 +63,7 @@ export async function getTableRowsCount(
   const table = parseSupaTable(entity)
 
   const formattedFilters = filters?.map((x) => ({ ...x, value: formatFilterValue(table, x) }))
-  const sql = wrapWithRoleImpersonation(
+  const roleAwareSql = wrapWithRoleImpersonation(
     getTableRowsCountSql({
       table,
       filters: formattedFilters,
@@ -69,6 +72,11 @@ export async function getTableRowsCount(
     }),
     roleImpersonationState
   )
+  const sql = wrapWithWarehouseSnapshotTime({
+    schema: table.schema,
+    snapshotTime: warehouseSnapshotTime,
+    sql: roleAwareSql,
+  })
   const { result } = await executeSql(
     {
       projectRef,

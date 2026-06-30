@@ -162,6 +162,7 @@ const RowHeader = ({ tableQueriesEnabled = true }: RowHeaderProps) => {
       preflightCheck,
       limit: tableEditorSnap.rowsPerPage,
       roleImpersonationState: roleImpersonationState as RoleImpersonationState,
+      warehouseSnapshotTime: snap.warehouseSnapshotTime,
     },
     { enabled: tableQueriesEnabled }
   )
@@ -173,6 +174,7 @@ const RowHeader = ({ tableQueriesEnabled = true }: RowHeaderProps) => {
       filters,
       enforceExactCount: snap.enforceExactCount,
       roleImpersonationState: roleImpersonationState as RoleImpersonationState,
+      warehouseSnapshotTime: snap.warehouseSnapshotTime,
     },
     { placeholderData: keepPreviousData, enabled: tableQueriesEnabled }
   )
