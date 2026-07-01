@@ -27,6 +27,7 @@ import { IS_PLATFORM } from '@/lib/constants'
 import { hotkeyToKeys } from '@/state/shortcuts/formatShortcut'
 import { SHORTCUT_DEFINITIONS, SHORTCUT_IDS } from '@/state/shortcuts/registry'
 import { useSqlEditorV2StateSnapshot } from '@/state/sql-editor-v2'
+import { useSqlEditorSessionSnapshot } from '@/state/sql-editor/sql-editor-session-state'
 
 export type UtilityActionsProps = {
   id: string
@@ -47,6 +48,7 @@ export const UtilityActions = ({
 }: UtilityActionsProps) => {
   const { ref } = useParams()
   const snapV2 = useSqlEditorV2StateSnapshot()
+  const sessionSnap = useSqlEditorSessionSnapshot()
 
   const [isAiOpen] = useLocalStorageQuery(LOCAL_STORAGE_KEYS.SQL_EDITOR_AI_OPEN, true)
   const [intellisenseEnabled, setIntellisenseEnabled] = useLocalStorageQuery(
@@ -84,7 +86,7 @@ export const UtilityActions = ({
   const removeFavorite = () => snapV2.removeFavorite(id)
 
   const onSelectDatabase = (databaseId: string) => {
-    snapV2.resetResults(id)
+    sessionSnap.resetResults(id)
     setLastSelectedDb(databaseId)
   }
 
