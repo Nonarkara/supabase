@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from 'ui'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import type { SupaRow } from '../../types'
+import { isColumnMasked } from '../../utils/sensitive-data'
 import { NullValue } from '../common/NullValue'
 import { ReferenceRecordPeek } from './ReferenceRecordPeek'
 import { convertByteaToHex } from '@/components/interfaces/TableGridEditor/SidePanelEditor/RowEditor/RowEditor.utils'
@@ -24,10 +25,11 @@ export const ForeignKeyFormatter = (props: Props) => {
   const { tableId, row, column } = props
   const snap = useTableEditorTableStateSnapshot()
   const { data: project } = useSelectedProjectQuery()
-
-  const isMasked =
-    snap.sensitiveDataColumns.has(column.key as string) &&
-    !snap.temporarilyRevealedColumns.has(column.key as string)
+  const isMasked = isColumnMasked(
+    column.key as string,
+    snap.sensitiveDataColumns,
+    snap.temporarilyRevealedColumns
+  )
 
   const { data, isPending: isLoading } = useTableEditorQuery({
     projectRef: project?.ref,

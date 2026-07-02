@@ -2,6 +2,7 @@ import { PropsWithChildren } from 'react'
 import type { RenderCellProps } from 'react-data-grid'
 
 import type { SupaRow } from '../../types'
+import { isColumnMasked } from '../../utils/sensitive-data'
 import { EmptyValue } from '../common/EmptyValue'
 import { NullValue } from '../common/NullValue'
 import { useTableEditorTableStateSnapshot } from '@/state/table-editor-table'
@@ -9,9 +10,11 @@ import { useTableEditorTableStateSnapshot } from '@/state/table-editor-table'
 export const JsonFormatter = (p: PropsWithChildren<RenderCellProps<SupaRow, unknown>>) => {
   const snap = useTableEditorTableStateSnapshot()
   let value = p.row[p.column.key]
-  const isMasked =
-    snap.sensitiveDataColumns.has(p.column.key as string) &&
-    !snap.temporarilyRevealedColumns.has(p.column.key as string)
+  const isMasked = isColumnMasked(
+    p.column.key as string,
+    snap.sensitiveDataColumns,
+    snap.temporarilyRevealedColumns
+  )
 
   if (value === null) return <NullValue />
   if (value === '') return <EmptyValue />
