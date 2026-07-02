@@ -112,7 +112,7 @@ The [configuration panel above](#step-2-configure-your-ai-tool) can set these op
 | `project_ref=<id>`  | Scope to a specific project (disables account tools) | `?project_ref=abc123`     |
 | `features=<groups>` | Enable only specific tool groups (comma-separated)   | `?features=database,docs` |
 
-Parameters can be combined: <CustomContent data="mcp:servers">{(servers) => <code>{servers?.remote}?project_ref=abc123&read_only=true</code>}</CustomContent>
+Parameters can be combined: <code><CustomContent data="mcp:servers">remote</CustomContent>?project_ref=abc123&read_only=true</code>
 
 <Admonition type="tip">
 

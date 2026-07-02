@@ -15,9 +15,11 @@ import { addBaseUrlPrefix } from './internal-links'
 import { Admonition } from './markdown-schema/Admonition'
 import { AuthProviders } from './markdown-schema/AuthProviders'
 import { ComputeDiskLimitsTable } from './markdown-schema/ComputeDiskLimitsTable'
+import { ContentListings } from './markdown-schema/ContentListings'
+import { CustomContent } from './markdown-schema/CustomContent'
 import { ErrorCodes } from './markdown-schema/ErrorCodes'
 import { Link } from './markdown-schema/Link'
-import { ContentListings } from './markdown-schema/ContentListings'
+import { McpCiConfigBlock } from './markdown-schema/McpCiConfigBlock'
 import { MetricsStackCards } from './markdown-schema/MetricsStackCards'
 import { NavData } from './markdown-schema/NavData'
 import { Panel } from './markdown-schema/Panel'
@@ -142,8 +144,10 @@ const SCHEMA: ComponentSchema = {
   Admonition,
   AuthProviders,
   ComputeDiskLimitsTable,
+  CustomContent,
   ErrorCodes,
   Link,
+  McpCiConfigBlock,
   Price,
   GlassPanel: Panel,
   IconPanel: Panel,

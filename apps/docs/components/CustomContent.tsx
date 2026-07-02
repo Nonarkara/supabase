@@ -2,7 +2,7 @@ import {
   getCustomContent,
   type CustomContent as CustomContentKey,
 } from '~/lib/custom-content/getCustomContent'
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 import { resolveSharedDataPath } from './SharedData.utils'
 
