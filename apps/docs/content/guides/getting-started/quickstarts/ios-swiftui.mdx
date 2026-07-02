@@ -4,13 +4,11 @@ subtitle: 'Learn how to create a Supabase project, add some sample data to your 
 breadcrumb: 'Framework Quickstarts'
 ---
 
-<$Partial path="quickstart_db_setup.mdx" />
-
-## 3. Create an iOS SwiftUI app with Xcode
+## 1. Create an iOS SwiftUI app with Xcode
 
 Select the **Xcode > New Project > iOS > App** menu item.
 
-## 4. Install the Supabase client library
+## 2. Install the Supabase client library
 
 Add the [supabase-swift](https://github.com/supabase/supabase-swift) package to your app using the Swift Package Manager.
 
@@ -20,7 +18,7 @@ Make sure to add `Supabase` product package as a dependency to your application 
 
 <$Partial path="api_settings.mdx" variables={{ "framework": "swift", "tab": "mobiles" }} />
 
-## 5. Initialize the Supabase client
+## 3. Initialize the Supabase client
 
 Create a new `Supabase.swift` file add a new Supabase instance using your project URL and publishable key, which you can get from the helper above, or [from the project **Connect** panel](/dashboard/project/_?showConnect=true&framework=swift&tab=mobiles):
 
@@ -33,7 +31,7 @@ let supabase = SupabaseClient(
 )
 ```
 
-## 6. Create a data model for instruments
+## 4. Create a data model for instruments
 
 Create a decodable struct to deserialize the data from the database.
 
@@ -46,7 +44,7 @@ struct Instrument: Decodable, Identifiable {
 }
 ```
 
-## 7. Query data from the app
+## 5. Query data from the app
 
 Use a `task` to fetch the data from the database and display it using a `List`.
 
@@ -79,7 +77,7 @@ struct ContentView: View {
 }
 ```
 
-## 8. Start the app
+## 6. Start the app
 
 Run the app on a simulator or a physical device by hitting `Cmd + R` on Xcode.
 

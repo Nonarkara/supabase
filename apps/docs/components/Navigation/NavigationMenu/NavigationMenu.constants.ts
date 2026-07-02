@@ -342,6 +342,7 @@ export const gettingstarted: NavMenuConstant = {
   title: 'Start with Supabase',
   url: '/guides/getting-started',
   items: [
+    { name: 'Create a project', url: '/guides/getting-started/create-a-project' },
     { name: 'Build with AI tools', url: '/guides/ai-tools' },
     { name: 'API Keys', url: '/guides/getting-started/api-keys' },
     { name: 'Local Development', url: '/guides/local-development/cli/getting-started' },

@@ -4,9 +4,7 @@ subtitle: 'Learn how to create a Supabase project, add some sample data, and que
 breadcrumb: 'Framework Quickstarts'
 ---
 
-<$Partial path="quickstart_db_setup.mdx" />
-
-## 3. Create a Next.js app
+## 1. Create a Next.js app
 
 Use the `create-next-app` command and the `with-supabase` template, to create a Next.js app pre-configured with [Cookie-based Auth](/docs/guides/auth/server-side/creating-a-client?queryGroups=package-manager&package-manager=npm&queryGroups=framework&framework=nextjs&queryGroups=environment&environment=server), [TypeScript](https://www.typescriptlang.org/), and [Tailwind CSS](https://tailwindcss.com/).
 
@@ -16,7 +14,7 @@ npx create-next-app -e with-supabase
 
 <$Partial path="api_settings.mdx" variables={{ "framework": "nextjs", "tab": "frameworks" }} />
 
-## 4. Declare Supabase environment variables
+## 2. Declare Supabase environment variables
 
 Rename `.env.example` to `.env.local` and populate with your Supabase connection variables that you can get from the helper above, or [from the project **Connect** panel](/dashboard/project/_?showConnect=true&framework=nextjs&tab=frameworks):
 
@@ -29,7 +27,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<SUBSTITUTE_SUPABASE_PUBLISHABLE_KEY>
 
 </$CodeTabs>
 
-## 5. Query Supabase data from Next.js
+## 3. Query Supabase data from Next.js
 
 <$Partial path="uiLibCta.mdx" />
 
@@ -61,7 +59,7 @@ export default function Instruments() {
 
 </$CodeTabs>
 
-## 6. Start the app
+## 4. Start the app
 
 Run the development server, go to http://localhost:3000/instruments in a browser and you should see the list of instruments.
 
