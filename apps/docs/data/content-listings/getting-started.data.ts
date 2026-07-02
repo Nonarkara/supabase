@@ -310,28 +310,3 @@ export const gettingStartedMobileTutorials: ContentListingGroup = {
     },
   ],
 }
-
-export const gettingStartedNextSteps: ContentListingGroup = {
-  id: 'getting-started-next-steps',
-  heading: 'Next steps',
-  headingLevel: 'h3',
-  type: 'grid',
-  items: [
-    {
-      title: 'Architecture',
-      href: '/guides/getting-started/architecture',
-      description:
-        'Learn how the Supabase stack is structured and how all the components fit together.',
-    },
-    {
-      title: 'Features',
-      href: '/guides/getting-started/features',
-      description: 'Explore the complete list of features and platform capabilities.',
-    },
-    {
-      title: 'Migrate to Supabase',
-      href: '/guides/platform/migrating-to-supabase',
-      description: 'Move your existing database to Supabase using our migration guides.',
-    },
-  ],
-}

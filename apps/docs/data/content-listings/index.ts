@@ -14,7 +14,6 @@ import {
   gettingStartedFrameworkQuickstarts,
   gettingStartedGetStarted,
   gettingStartedMobileTutorials,
-  gettingStartedNextSteps,
   gettingStartedUseCases,
   gettingStartedWebAppDemos,
 } from './getting-started.data'
@@ -38,7 +37,6 @@ const ALL_GROUPS: readonly ContentListingGroup[] = [
   gettingStartedFrameworkQuickstarts,
   gettingStartedWebAppDemos,
   gettingStartedMobileTutorials,
-  gettingStartedNextSteps,
   realtimeGetStarted,
   realtimeExamples,
   realtimeResources,
