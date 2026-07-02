@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
+import { useSnapshot } from 'valtio'
 
 import type { ConnectMode } from './Connect.types'
+import { hasWarehouseTables, warehouseDemoStore } from '@/components/interfaces/Database/Warehouse/warehouseDemoStore'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
 
 export function useAvailableConnectModes(): ConnectMode[] {
@@ -14,6 +16,9 @@ export function useAvailableConnectModes(): ConnectMode[] {
     'project_connection:show_orms',
   ])
 
+  useSnapshot(warehouseDemoStore)
+  const showCatalog = hasWarehouseTables()
+
   return useMemo(() => {
     const allModes: { id: ConnectMode; enabled: boolean }[] = [
       { id: 'framework', enabled: showAppFrameworks || showMobileFrameworks },
@@ -21,8 +26,8 @@ export function useAvailableConnectModes(): ConnectMode[] {
       { id: 'direct', enabled: true },
       { id: 'orm', enabled: showOrms },
       { id: 'mcp', enabled: true },
-      { id: 'catalog', enabled: true },
+      { id: 'catalog', enabled: showCatalog },
     ]
     return allModes.filter((m) => m.enabled).map((m) => m.id)
-  }, [showAppFrameworks, showMobileFrameworks, showOrms])
+  }, [showAppFrameworks, showMobileFrameworks, showOrms, showCatalog])
 }

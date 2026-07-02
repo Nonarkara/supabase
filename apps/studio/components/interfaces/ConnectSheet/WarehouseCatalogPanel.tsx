@@ -7,6 +7,7 @@ import { useSnapshot } from 'valtio'
 import { warehouseDemoStore } from '@/components/interfaces/Database/Warehouse/warehouseDemoStore'
 import type { WarehouseCatalogEngine } from '@/components/interfaces/Integrations/WarehouseCatalog/warehouseCatalog.constants'
 import { WarehouseCatalogCredentials } from '@/components/interfaces/Integrations/WarehouseCatalog/WarehouseCatalogCredentials'
+import { shouldShowCatalogDisabledNotice } from './WarehouseCatalogPanel.utils'
 
 interface WarehouseCatalogPanelProps {
   queryEngine?: WarehouseCatalogEngine
@@ -15,11 +16,12 @@ interface WarehouseCatalogPanelProps {
 export function WarehouseCatalogPanel({ queryEngine = 'env' }: WarehouseCatalogPanelProps) {
   const { ref: projectRef } = useParams()
   const { catalogEnabled } = useSnapshot(warehouseDemoStore)
+  const showCatalogDisabledNotice = shouldShowCatalogDisabledNotice({ catalogEnabled })
 
   return (
     <div className="flex flex-col divide-y">
       <div className="p-8">
-        {!catalogEnabled ? (
+        {showCatalogDisabledNotice ? (
           <Admonition
             type="warning"
             layout="responsive"

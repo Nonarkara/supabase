@@ -139,6 +139,21 @@ export const ConnectSheet = () => {
     setQueryParams,
   ])
 
+  useEffect(() => {
+    if (state.mode !== 'catalog' || availableModeIds.includes('catalog')) return
+
+    const fallbackMode = availableModeIds[0] ?? 'framework'
+    setMode(fallbackMode)
+    setConnectParams({
+      connectTab: fallbackMode,
+      framework: null,
+      using: null,
+      method: null,
+      type: null,
+      mcpClient: null,
+    })
+  }, [state.mode, availableModeIds, setMode, setConnectParams])
+
   const clearAllQueryParams = () => {
     setQueryParams({
       connectTab: null,
