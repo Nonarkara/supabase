@@ -63,9 +63,9 @@ const page: GoPageInput = {
       type: 'form',
       id: 'form',
       className: 'py-4 sm:py-8',
-      title: 'Request Supabase Pipelines early access',
+      title: 'Request early access to new Pipelines destinations',
       description:
-        'Tell us which destinations your team wants to use with Supabase Pipelines. A member of the Supabase team may reach out if your workspace is a fit for early access.',
+        'This form is for early access to upcoming destinations for Supabase Pipelines, not access to Supabase Pipelines itself. Tell us which destinations your team wants to use. If your workspace is selected, we may try to reach out with next steps.',
       fields: [
         {
           type: 'email',
@@ -109,7 +109,7 @@ const page: GoPageInput = {
           groupRequired: true,
         },
       ],
-      submitLabel: 'Request early access',
+      submitLabel: 'Request destination access',
       successRedirect: '/go/supabase-pipelines-new-destinations/thank-you',
       disclaimer:
         'By submitting this form, I confirm that I have read and understood the [Privacy Policy](https://supabase.com/privacy).',
