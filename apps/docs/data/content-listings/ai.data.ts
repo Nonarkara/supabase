@@ -1,5 +1,29 @@
 import type { ContentListingGroup } from '~/lib/content-listings.schema'
 
+export const aiGetStarted: ContentListingGroup = {
+  id: 'ai-get-started',
+  heading: 'Get started',
+  headingLevel: 'h2',
+  type: 'grid',
+  items: [
+    {
+      title: 'Concepts',
+      href: '/guides/ai/concepts',
+      description: 'Understand vectors, embeddings, and how pgvector works with Postgres.',
+    },
+    {
+      title: 'Generate text embeddings',
+      href: '/guides/ai/quickstarts/generate-text-embeddings',
+      description: 'Use open source models in Edge Functions to generate and store embeddings.',
+    },
+    {
+      title: 'Semantic search',
+      href: '/guides/ai/semantic-search',
+      description: 'Build a search feature that finds results by meaning rather than exact keywords.',
+    },
+  ],
+}
+
 export const aiExamples: ContentListingGroup = {
   id: 'ai-examples',
   heading: 'Examples',
