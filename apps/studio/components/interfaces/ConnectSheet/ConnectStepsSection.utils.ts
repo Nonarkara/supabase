@@ -10,12 +10,14 @@ export function shouldShowDataApiDisabledNotice({
   mode,
   isDataApiEnabled,
   isPending,
+  isError,
 }: {
   mode: ConnectMode
   isDataApiEnabled: boolean
   isPending: boolean
+  isError: boolean
 }): boolean {
-  if (isPending) return false
+  if (isPending || isError) return false
   return isDataApiDependentConnectMode(mode) && !isDataApiEnabled
 }
 

@@ -35,9 +35,24 @@ describe('shouldShowDataApiDisabledNotice', () => {
         mode,
         isDataApiEnabled: false,
         isPending: true,
+        isError: false,
       })
     ).toBe(false)
   })
+
+  test.each(['framework', 'server', 'mcp'] as const)(
+    'returns false when %s mode config query errored',
+    (mode) => {
+      expect(
+        shouldShowDataApiDisabledNotice({
+          mode,
+          isDataApiEnabled: false,
+          isPending: false,
+          isError: true,
+        })
+      ).toBe(false)
+    }
+  )
 
   test.each(['framework', 'server', 'mcp'] as const)(
     'returns true when %s mode has Data API disabled',
@@ -47,6 +62,7 @@ describe('shouldShowDataApiDisabledNotice', () => {
           mode,
           isDataApiEnabled: false,
           isPending: false,
+          isError: false,
         })
       ).toBe(true)
     }
@@ -60,6 +76,7 @@ describe('shouldShowDataApiDisabledNotice', () => {
           mode,
           isDataApiEnabled: true,
           isPending: false,
+          isError: false,
         })
       ).toBe(false)
     }
@@ -73,6 +90,7 @@ describe('shouldShowDataApiDisabledNotice', () => {
           mode,
           isDataApiEnabled: false,
           isPending: false,
+          isError: false,
         })
       ).toBe(false)
     }

@@ -17,6 +17,7 @@ import type {
 } from './Connect.types'
 import { ConnectSheetStep } from './ConnectSheetStep'
 import {
+  isDataApiDependentConnectMode,
   shouldShowDataApiConfigLoading,
   shouldShowDataApiDisabledNotice,
 } from './ConnectStepsSection.utils'
@@ -201,8 +202,14 @@ export function ConnectStepsSection({ steps, state, projectKeys }: ConnectStepsS
 
   const showSelfHostedMcpNotice = deploymentMode.isSelfHosted && state.mode === 'mcp'
 
-  const { isEnabled: isDataApiEnabled, isPending: isDataApiConfigPending } = useIsDataApiEnabled({
+  const isDataApiDependentMode = isDataApiDependentConnectMode(state.mode)
+  const {
+    isEnabled: isDataApiEnabled,
+    isPending: isDataApiConfigPending,
+    isError: isDataApiConfigError,
+  } = useIsDataApiEnabled({
     projectRef: ref,
+    enabled: isDataApiDependentMode,
   })
   const showDataApiConfigLoading = shouldShowDataApiConfigLoading({
     mode: state.mode,
@@ -212,6 +219,7 @@ export function ConnectStepsSection({ steps, state, projectKeys }: ConnectStepsS
     mode: state.mode,
     isDataApiEnabled,
     isPending: isDataApiConfigPending,
+    isError: isDataApiConfigError,
   })
 
   const customPrompt = useMemo(
