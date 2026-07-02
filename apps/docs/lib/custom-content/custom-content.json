@@ -7,7 +7,7 @@
     "dark": "/docs/supabase-dark.svg"
   },
   "mcp:servers": {
-    "local": "http://localhost:8080/mcp",
-    "remote": "http://localhost:54321/mcp"
+    "local": "http://localhost:54321/mcp",
+    "remote": "https://mcp.supabase.com/mcp"
   }
 }
