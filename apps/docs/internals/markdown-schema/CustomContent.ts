@@ -1,7 +1,8 @@
-import { resolveSharedDataPath } from '../../components/SharedData.utils'
-import customContentRaw from '../../lib/custom-content/custom-content.json'
-
-const customContent = customContentRaw as Record<string, unknown>
+import { resolveSharedDataPath } from '~/components/SharedData.utils'
+import {
+  getCustomContent,
+  type CustomContent as CustomContentKey,
+} from '~/lib/custom-content/getCustomContent'
 
 export const CustomContent = ({
   props,
@@ -10,8 +11,10 @@ export const CustomContent = ({
   props: Record<string, unknown>
   children: string
 }): string => {
-  const value = customContent[String(props.data ?? '')]
-  if (value === undefined) return ''
+  const key = String(props.data ?? '') as CustomContentKey
+  const result = getCustomContent([key])
+  const value = Object.values(result)[0]
+  if (value == null) return ''
 
   const path = children.trim()
   if (!path) return typeof value === 'string' ? value : JSON.stringify(value)
