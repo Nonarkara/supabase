@@ -112,11 +112,11 @@ The [configuration panel above](#step-2-configure-your-ai-tool) can set these op
 | `project_ref=<id>`  | Scope to a specific project (disables account tools) | `?project_ref=abc123`     |
 | `features=<groups>` | Enable only specific tool groups (comma-separated)   | `?features=database,docs` |
 
-Parameters can be combined: <CustomContent path="mcp:servers">{(servers) => <code>{servers?.remote}?project_ref=abc123&read_only=true</code>}</CustomContent>
+Parameters can be combined: <CustomContent data="mcp:servers">{(servers) => <code>{servers?.remote}?project_ref=abc123&read_only=true</code>}</CustomContent>
 
 <Admonition type="tip">
 
-When using [Supabase CLI](/docs/guides/cli) for local development, the MCP server is available at <CustomContent path="mcp:servers">{(servers) => <code>{servers?.local}</code>}</CustomContent>.
+When using [Supabase CLI](/docs/guides/cli) for local development, the MCP server is available at <code><CustomContent data="mcp:servers">local</CustomContent></code>.
 
 </Admonition>
 

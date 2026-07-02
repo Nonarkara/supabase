@@ -4,34 +4,49 @@ import {
 } from '~/lib/custom-content/getCustomContent'
 import { ReactNode } from 'react'
 
+import { resolveSharedDataPath } from './SharedData.utils'
+
 type ValueFor<T extends CustomContentKey> = ReturnType<
   typeof getCustomContent<[T]>
 >[keyof ReturnType<typeof getCustomContent<[T]>>]
 
 /**
  * A wrapper component to access values from `custom-content.json` within MDX
- * files. Mirrors the `getCustomContent` helper used in TSX code.
+ * files. Mirrors the `getCustomContent` helper used in TSX code, and follows
+ * the same `data`/path-or-render-function pattern as `SharedData`.
+ *
+ * @param data - The `custom-content.json` key to read, e.g. `navigation:logo`.
+ * @param children - How to access the selected value. If it is a render
+ *                   function, it takes the value as a param. If it is a
+ *                   string, it takes a path through the value, formatted like
+ *                   `a[0].b.c`. If omitted, the value itself is rendered.
  *
  * @example Render a value inline
- * <CustomContent path="metadata:title" />
+ * <CustomContent data="metadata:title" />
+ *
+ * @example Address a nested field with a path
+ * <CustomContent data="navigation:logo">light</CustomContent>
  *
  * @example Use a render function for richer output
- * <CustomContent path="navigation:logo">
+ * <CustomContent data="navigation:logo">
  *   {(logo) => <img src={logo?.light} />}
  * </CustomContent>
  */
 function CustomContent<T extends CustomContentKey>({
-  path,
+  data,
   children,
 }: {
-  path: T
-  children?: (value: ValueFor<T>) => ReactNode
+  data: T
+  children?: ((value: ValueFor<T>) => ReactNode) | string
 }) {
-  const result = getCustomContent([path])
+  const result = getCustomContent([data])
   const value = Object.values(result)[0] as ValueFor<T>
 
   if (typeof children === 'function') {
     return children(value)
+  }
+  if (typeof children === 'string') {
+    return resolveSharedDataPath(value, children) as ReactNode
   }
 
   return (value ?? null) as ReactNode
