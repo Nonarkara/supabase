@@ -1716,7 +1716,7 @@ const channel = supabase
       event: 'INSERT',
       schema: 'public',
       table: 'colors',
-      filter: 'name=in.(red, blue, yellow)',
+      filter: 'name=in.(red,blue,yellow)',
     },
     (payload) => console.log(payload)
   )
@@ -1778,7 +1778,7 @@ val myChannel = supabase.channel("db-changes")
 
 val changes = myChannel.postgresChangeFlow<PostgresAction.Update>(schema = "public") {
     table = "products"
-    filter = "name=in.(red, blue, yellow)"
+    filter = "name=in.(red,blue,yellow)"
 }
 
 changes
@@ -1800,7 +1800,7 @@ changes = supabase.channel('db-changes').on_postgres_changes(
   "UPDATE",
   schema="public",
   table="products",
-  filter="name=in.(red, blue, yellow)",
+  filter="name=in.(red,blue,yellow)",
   callback=lambda payload: print(payload)
 )
 .subscribe()
@@ -1957,7 +1957,7 @@ changes = supabase.channel('db-changes').on_postgres_changes(
 </$Show>
 </Tabs>
 
-`like` uses Postgres's `LIKE` and `ilike` uses `ILIKE`. Both require a text-compatible column.
+`like` uses Postgres's `LIKE` and `ilike` uses `ILIKE`. Both require a text-compatible column. The examples above use `ilike`; swap in `like` for case-sensitive matching—usage is otherwise identical.
 
 ### Regular expression matching (`match`, `imatch`)
 
@@ -2104,7 +2104,7 @@ changes = supabase.channel('db-changes').on_postgres_changes(
 </$Show>
 </Tabs>
 
-`match` uses Postgres's `~` operator and `imatch` uses `~*`. Both require a text-compatible column, and the pattern is validated when you subscribe.
+`match` uses Postgres's `~` operator and `imatch` uses `~*`. Both require a text-compatible column, and the pattern is validated when you subscribe. The examples above use `match`; swap in `imatch` for case-insensitive matching—usage is otherwise identical.
 
 ### Null and boolean checks (`is`)
 
@@ -2888,7 +2888,7 @@ let changes = await myChannel.postgresChange(
   UpdateAction.self,
   schema: "public",
   table: "products",
-  filter: "name=in.(red, blue, yellow)"
+  filter: "name=in.(red,blue,yellow)"
 )
 
 await myChannel.subscribe()
@@ -2913,7 +2913,7 @@ val myChannel = supabase.channel("db-changes")
 
 val changes = myChannel.postgresChangeFlow<PostgresAction.Update>(schema = "public") {
     table = "products"
-    filter = "name=in.(red, blue, yellow)"
+    filter = "name=in.(red,blue,yellow)"
 }
 
 changes
@@ -2937,7 +2937,7 @@ changes = supabase.channel('db-changes').on_postgres_changes(
   "UPDATE",
   schema="public",
   table="products",
-  filter="name=in.(red, blue, yellow)",
+  filter="name=in.(red,blue,yellow)",
   callback=lambda payload: print(payload)
 )
 .subscribe()
