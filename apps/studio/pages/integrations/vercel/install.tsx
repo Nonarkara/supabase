@@ -18,7 +18,6 @@ import {
 import { Admonition } from 'ui-patterns/admonition'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
-import { buildVercelInstallRouteQuery, getErrorMessage } from './install.utils'
 import { getHasInstalledObject } from '@/components/layouts/IntegrationsLayout/Integrations.utils'
 import {
   InterstitialAccountRow,
@@ -32,6 +31,11 @@ import { useVercelIntegrationCreateMutation } from '@/data/integrations/vercel-i
 import { useOrganizationsQuery } from '@/data/organizations/organizations-query'
 import { withAuth } from '@/hooks/misc/withAuth'
 import { BASE_PATH } from '@/lib/constants'
+import {
+  buildVercelInstallRouteQuery,
+  getErrorMessage,
+  getVercelInstallSource,
+} from '@/lib/integrations/vercel-install.utils'
 import { buildStudioPageTitle } from '@/lib/page-title'
 import { useProfileNameAndPicture } from '@/lib/profile'
 import { useIntegrationInstallationSnapshot } from '@/state/integration-installation'
@@ -120,8 +124,9 @@ const VercelIntegration: NextPageWithLayout = () => {
    */
   function handleRouteChange() {
     const orgSlug = selectedOrg?.slug
+    const vercelInstallSource = getVercelInstallSource(source)
     const query = buildVercelInstallRouteQuery({
-      source,
+      source: vercelInstallSource,
       organizationSlug: orgSlug,
       configurationId,
       currentProjectId,
@@ -129,7 +134,7 @@ const VercelIntegration: NextPageWithLayout = () => {
       next,
     })
 
-    switch (source) {
+    switch (vercelInstallSource) {
       case 'deploy-button': {
         router.push({
           pathname: `/integrations/vercel/${orgSlug}/deploy-button/new-project`,

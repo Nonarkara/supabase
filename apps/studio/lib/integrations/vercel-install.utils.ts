@@ -11,8 +11,23 @@ export function getErrorMessage(error: unknown): string | undefined {
   return undefined
 }
 
+export type VercelInstallSource = 'deploy-button' | 'marketplace' | 'external'
+
+export function getVercelInstallSource(
+  source: string | undefined
+): VercelInstallSource | undefined {
+  switch (source) {
+    case 'deploy-button':
+    case 'marketplace':
+    case 'external':
+      return source
+    default:
+      return undefined
+  }
+}
+
 type BuildVercelInstallRouteQueryArgs = {
-  source?: string
+  source?: VercelInstallSource
   organizationSlug?: string
   configurationId?: string
   currentProjectId?: string
