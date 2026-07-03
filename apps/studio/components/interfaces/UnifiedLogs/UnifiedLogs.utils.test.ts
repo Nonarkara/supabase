@@ -77,14 +77,18 @@ describe('parseMultigresEventMessage', () => {
 })
 
 describe('getEventMessageDisplay', () => {
-  it('parses multigres rows into their msg field', () => {
+  it('parses multigres rows into their msg field and capitalizes them', () => {
     const value = JSON.stringify({ level: 'INFO', msg: 'Configuring synchronous replication' })
-    expect(getEventMessageDisplay('multigres', value)).toBe('Configuring synchronous replication')
+    expect(getEventMessageDisplay('multigres', value)).toEqual({
+      message: 'Configuring synchronous replication',
+      capitalize: true,
+    })
   })
 
-  it('leaves non-parsed log types untouched', () => {
-    expect(getEventMessageDisplay('postgres', 'relation does not exist')).toBe(
-      'relation does not exist'
-    )
+  it('leaves non-parsed log types untouched and uncapitalized', () => {
+    expect(getEventMessageDisplay('postgres', 'relation does not exist')).toEqual({
+      message: 'relation does not exist',
+      capitalize: false,
+    })
   })
 })

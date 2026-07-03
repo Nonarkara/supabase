@@ -186,14 +186,16 @@ export function parseMultigresEventMessage(value: string | undefined): string | 
 }
 
 /**
- * Returns the display string for a log row's event_message, applying the
- * per-service parsing that turns stringified JSON payloads into readable text.
+ * Returns the display text for a log row's event_message alongside whether it
+ * should be rendered as a capitalized sentence. Keeps the per-service parsing
+ * and its capitalization rule in one place so callers don't re-derive the list.
  */
 export function getEventMessageDisplay(
   logType: string,
   value: string | undefined
-): string | undefined {
-  if (logType === 'auth') return parseAuthLogEventMessage(value)
-  if (logType === 'multigres') return parseMultigresEventMessage(value)
-  return value
+): { message: string | undefined; capitalize: boolean } {
+  if (logType === 'auth') return { message: parseAuthLogEventMessage(value), capitalize: true }
+  if (logType === 'multigres')
+    return { message: parseMultigresEventMessage(value), capitalize: true }
+  return { message: value, capitalize: false }
 }

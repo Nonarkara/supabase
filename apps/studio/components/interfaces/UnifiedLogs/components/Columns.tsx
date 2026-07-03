@@ -234,8 +234,10 @@ export function generateDynamicColumns({ data }: { data: ColumnSchema[] }): {
         const value = row.getValue<ColumnSchema['event_message']>('event_message')
         const logType = row.original.log_type
         const logCount = row.original.log_count
-        const displayMessage = getEventMessageDisplay(logType, value)
-        const capitalizeMessage = logType === 'auth' || logType === 'multigres'
+        const { message: displayMessage, capitalize: capitalizeMessage } = getEventMessageDisplay(
+          logType,
+          value
+        )
 
         return (
           <div className="flex flex-row gap-2 items-center">
