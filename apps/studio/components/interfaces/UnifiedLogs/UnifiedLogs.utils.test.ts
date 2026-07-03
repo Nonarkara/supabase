@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildUnifiedLogsUrl,
+  gateFilterFieldsByHighAvailability,
   getEventMessageDisplay,
   parseMultigresEventMessage,
 } from './UnifiedLogs.utils'
@@ -90,5 +91,34 @@ describe('getEventMessageDisplay', () => {
       message: 'relation does not exist',
       capitalize: false,
     })
+  })
+})
+
+describe('gateFilterFieldsByHighAvailability', () => {
+  const fields = [
+    { value: 'date' },
+    {
+      value: 'log_type',
+      options: [
+        { label: 'Postgres', value: 'postgres' },
+        { label: 'Multigres', value: 'multigres' },
+      ],
+    },
+  ]
+
+  it('drops the multigres log_type option for non-high-availability projects', () => {
+    const gated = gateFilterFieldsByHighAvailability(fields, false)
+    const logType = gated.find((field) => field.value === 'log_type')
+    expect(logType?.options?.map((option) => option.value)).toEqual(['postgres'])
+  })
+
+  it('keeps the multigres option for high availability projects', () => {
+    const gated = gateFilterFieldsByHighAvailability(fields, true)
+    expect(gated).toBe(fields)
+  })
+
+  it('leaves non log_type fields untouched', () => {
+    const gated = gateFilterFieldsByHighAvailability(fields, false)
+    expect(gated.find((field) => field.value === 'date')).toEqual({ value: 'date' })
   })
 })

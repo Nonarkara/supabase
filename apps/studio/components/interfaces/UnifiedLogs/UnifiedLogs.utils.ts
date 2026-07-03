@@ -4,6 +4,7 @@ import { cn } from 'ui'
 import { LOG_TYPES_LABELS } from './UnifiedLogs.constants'
 import { FacetMetadataSchema } from './UnifiedLogs.schema'
 import { LEVELS } from '@/components/ui/DataTable/DataTable.constants'
+import { Option } from '@/components/ui/DataTable/DataTable.types'
 
 export type UnifiedLogType = keyof typeof LOG_TYPES_LABELS
 
@@ -198,4 +199,21 @@ export function getEventMessageDisplay(
   if (logType === 'multigres')
     return { message: parseMultigresEventMessage(value), capitalize: true }
   return { message: value, capitalize: false }
+}
+
+/**
+ * Multigres logs only exist on high availability projects, so the multigres
+ * log_type option is removed from the filter fields for everyone else.
+ */
+export function gateFilterFieldsByHighAvailability<T extends { value: string; options?: Option[] }>(
+  fields: T[],
+  isHighAvailability: boolean
+): T[] {
+  if (isHighAvailability) return fields
+
+  return fields.map((field) =>
+    field.value === 'log_type' && field.options
+      ? ({ ...field, options: field.options.filter((option) => option.value !== 'multigres') } as T)
+      : field
+  )
 }
