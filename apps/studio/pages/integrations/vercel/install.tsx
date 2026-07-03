@@ -41,32 +41,6 @@ const PAGE_TITLE = buildStudioPageTitle({
   brand: 'Supabase',
 })
 
-const MOCK_ORGANIZATIONS = [
-  { name: 'Acme Inc', slug: 'acme-inc', billing_email: 'billing@acme.test' },
-  { name: 'Globex', slug: 'globex', billing_email: 'billing@globex.test' },
-  { name: 'Installed Example', slug: 'installed-example', billing_email: 'billing@example.test' },
-] as Organization[]
-
-const MOCK_INSTALLED_ORGANIZATION_SLUG = MOCK_ORGANIZATIONS[0].slug
-
-const MOCK_STATES = [
-  'ready',
-  'loading',
-  'installing',
-  'installed',
-  'already-installed',
-  'no-organizations',
-  'missing-params',
-  'error',
-] as const
-
-type MockState = (typeof MOCK_STATES)[number]
-
-function getMockState(value: string | string[] | undefined): MockState | undefined {
-  const mock = Array.isArray(value) ? value[0] : value
-  return MOCK_STATES.includes(mock as MockState) ? (mock as MockState) : undefined
-}
-
 function getErrorMessage(error: unknown): string | undefined {
   if (error instanceof Error) return error.message
   if (
@@ -97,16 +71,6 @@ const VercelIntegration: NextPageWithLayout = () => {
   const { username, primaryEmail, avatarUrl } = useProfileNameAndPicture()
 
   const snapshot = useIntegrationInstallationSnapshot()
-  const mockState = getMockState(router.query.mock)
-  const isMockState = mockState !== undefined
-  const isMissingParamsMockState = mockState === 'missing-params'
-  const codeValue = isMissingParamsMockState ? undefined : isMockState ? 'mock-vercel-code' : code
-  const configurationIdValue = isMissingParamsMockState
-    ? undefined
-    : isMockState
-      ? 'mock-vercel-configuration-id'
-      : configurationId
-  const sourceValue = isMissingParamsMockState ? undefined : isMockState ? 'marketplace' : source
   const displayName = primaryEmail ?? username ?? ''
 
   /**
@@ -119,35 +83,25 @@ const VercelIntegration: NextPageWithLayout = () => {
     isPending: isLoadingIntegrationsQuery,
     isError: isIntegrationsError,
     error: integrationsError,
-  } = useIntegrationsQuery({ enabled: !isMockState })
+  } = useIntegrationsQuery()
 
   const {
-    data: organizationsQueryData,
+    data: organizationsData,
     isPending: isLoadingOrganizationsQuery,
     isSuccess: isOrganizationsDataSuccess,
     isError: isOrganizationsError,
     error: organizationsError,
-  } = useOrganizationsQuery({ enabled: !isMockState })
-
-  const mockOrganizationsData =
-    mockState === 'loading' || mockState === 'error'
-      ? undefined
-      : mockState === 'no-organizations'
-        ? []
-        : MOCK_ORGANIZATIONS
-  const organizationsData = isMockState ? mockOrganizationsData : organizationsQueryData
-  const isLoadingOrganizations = isMockState ? mockState === 'loading' : isLoadingOrganizationsQuery
-  const isLoadingIntegrations = isMockState ? mockState === 'loading' : isLoadingIntegrationsQuery
+  } = useOrganizationsQuery()
 
   useEffect(() => {
-    if (organizationsData !== undefined && (integrationData !== undefined || isMockState)) {
+    if (organizationsData !== undefined && integrationData !== undefined) {
       const firstOrg = organizationsData[0]
 
       if (firstOrg && selectedOrg === null) {
         setSelectedOrg(firstOrg)
       }
     }
-  }, [organizationsData, integrationData, isMockState, selectedOrg])
+  }, [organizationsData, integrationData, selectedOrg])
 
   /**
    * Organizations with extra `installationInstalled` attribute
@@ -157,19 +111,15 @@ const VercelIntegration: NextPageWithLayout = () => {
    */
   const installed = useMemo(
     () =>
-      isMockState
-        ? mockState === 'already-installed'
-          ? { [MOCK_INSTALLED_ORGANIZATION_SLUG]: true }
-          : {}
-        : integrationData && organizationsData
-          ? getHasInstalledObject({
-              integrationName: 'Vercel',
-              integrationData,
-              organizationsData,
-              installationId: configurationIdValue,
-            })
-          : {},
-    [configurationIdValue, integrationData, isMockState, mockState, organizationsData]
+      integrationData && organizationsData
+        ? getHasInstalledObject({
+            integrationName: 'Vercel',
+            integrationData,
+            organizationsData,
+            installationId: configurationId,
+          })
+        : {},
+    [configurationId, integrationData, organizationsData]
   )
 
   /**
@@ -183,7 +133,7 @@ const VercelIntegration: NextPageWithLayout = () => {
   function handleRouteChange() {
     const orgSlug = selectedOrg?.slug
 
-    switch (sourceValue) {
+    switch (source) {
       case 'deploy-button': {
         router.push({
           pathname: `/integrations/vercel/${orgSlug}/deploy-button/new-project`,
@@ -201,7 +151,7 @@ const VercelIntegration: NextPageWithLayout = () => {
       }
       default:
         toast.error(
-          `Unsupported Vercel installation source: ${sourceValue}. Please contact support if this error persists.`
+          `Unsupported Vercel installation source: ${source}. Please contact support if this error persists.`
         )
     }
   }
@@ -223,9 +173,6 @@ const VercelIntegration: NextPageWithLayout = () => {
 
   function onInstall() {
     const orgSlug = selectedOrg?.slug
-    const installCode = codeValue
-    const installConfigurationId = configurationIdValue
-    const installSource = sourceValue
 
     const isIntegrationInstalled = orgSlug ? installed[orgSlug] : false
 
@@ -233,20 +180,16 @@ const VercelIntegration: NextPageWithLayout = () => {
       return toast.error('Please select an organization')
     }
 
-    if (!installCode) {
+    if (!code) {
       return toast.error('Vercel code missing')
     }
 
-    if (!installConfigurationId) {
+    if (!configurationId) {
       return toast.error('Vercel Configuration ID missing')
     }
 
-    if (!installSource) {
+    if (!source) {
       return toast.error('Vercel Configuration source missing')
-    }
-
-    if (isMockState) {
-      return toast.success('Mock Vercel installation completed')
     }
 
     /**
@@ -254,11 +197,11 @@ const VercelIntegration: NextPageWithLayout = () => {
      */
     if (!isIntegrationInstalled) {
       mutate({
-        code: installCode,
-        configurationId: installConfigurationId,
+        code,
+        configurationId,
         orgSlug,
         metadata: {},
-        source: installSource,
+        source,
         teamId: teamId,
       })
     } else {
@@ -268,38 +211,28 @@ const VercelIntegration: NextPageWithLayout = () => {
 
   const dataLoading =
     isLoadingVercelIntegrationCreateMutation ||
-    isLoadingOrganizations ||
-    isLoadingIntegrations ||
-    mockState === 'installing'
+    isLoadingOrganizationsQuery ||
+    isLoadingIntegrationsQuery
 
   const noOrganizations = useMemo(() => {
-    const organizationsLoaded = isMockState || isOrganizationsDataSuccess
-    return organizationsLoaded && organizationsData?.length === 0 ? true : false
-  }, [isMockState, isOrganizationsDataSuccess, organizationsData])
+    return isOrganizationsDataSuccess && organizationsData?.length === 0 ? true : false
+  }, [isOrganizationsDataSuccess, organizationsData])
 
   const alreadyInstalled = useMemo(() => {
-    return selectedOrg &&
-      installed[selectedOrg.slug] &&
-      sourceValue === 'marketplace' &&
-      !dataLoading
+    return selectedOrg && installed[selectedOrg.slug] && source === 'marketplace' && !dataLoading
       ? true
       : false
-  }, [dataLoading, installed, selectedOrg, sourceValue])
+  }, [dataLoading, installed, selectedOrg, source])
 
   const missingParams = [
-    !codeValue ? 'code' : undefined,
-    !configurationIdValue ? 'configurationId' : undefined,
-    !sourceValue ? 'source' : undefined,
+    !code ? 'code' : undefined,
+    !configurationId ? 'configurationId' : undefined,
+    !source ? 'source' : undefined,
   ].filter(Boolean) as string[]
 
-  const isError =
-    mockState === 'error' || (!isMockState && (isOrganizationsError || isIntegrationsError))
-  const errorMessage =
-    mockState === 'error'
-      ? 'Unable to retrieve Vercel installation details.'
-      : (getErrorMessage(organizationsError) ?? getErrorMessage(integrationsError))
-  const showLoadingState =
-    mockState === 'loading' || (!isMockState && (isLoadingOrganizations || isLoadingIntegrations))
+  const isError = isOrganizationsError || isIntegrationsError
+  const errorMessage = getErrorMessage(organizationsError) ?? getErrorMessage(integrationsError)
+  const showLoadingState = isLoadingOrganizationsQuery || isLoadingIntegrationsQuery
 
   const disableInstallationForm =
     dataLoading ||
@@ -313,15 +246,13 @@ const VercelIntegration: NextPageWithLayout = () => {
   const isLoading = useMemo(() => {
     return (
       isLoadingVercelIntegrationCreateMutation ||
-      isLoadingOrganizations ||
-      isLoadingIntegrations ||
-      mockState === 'installing'
+      isLoadingOrganizationsQuery ||
+      isLoadingIntegrationsQuery
     )
   }, [
     isLoadingVercelIntegrationCreateMutation,
-    isLoadingIntegrations,
-    isLoadingOrganizations,
-    mockState,
+    isLoadingIntegrationsQuery,
+    isLoadingOrganizationsQuery,
   ])
 
   return (
@@ -357,8 +288,6 @@ const VercelIntegration: NextPageWithLayout = () => {
             <InstallationLoadingState />
           ) : isError ? (
             <InstallationErrorState errorMessage={errorMessage} />
-          ) : mockState === 'installed' ? (
-            <InstallationSuccessState />
           ) : (
             <div className="flex flex-col gap-5">
               <InterstitialAccountRow avatarUrl={avatarUrl} displayName={displayName} />
@@ -461,19 +390,6 @@ const InstallationErrorState = ({ errorMessage }: { errorMessage?: string }) => 
     <Button variant="default" block asChild>
       <Link href="/">Back to dashboard</Link>
     </Button>
-  </div>
-)
-
-const InstallationSuccessState = () => (
-  <div className="flex flex-col gap-4">
-    <Admonition
-      type="success"
-      title="Vercel integration installed"
-      description="You can continue setting up project connections for this integration."
-    />
-    <p className="text-center text-xs text-foreground-lighter text-balance">
-      In the live flow, Supabase redirects to the next Vercel setup step automatically.
-    </p>
   </div>
 )
 
