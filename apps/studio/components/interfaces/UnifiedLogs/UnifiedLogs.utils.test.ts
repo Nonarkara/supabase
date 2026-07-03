@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildUnifiedLogsUrl } from './UnifiedLogs.utils'
+import {
+  buildUnifiedLogsUrl,
+  getEventMessageDisplay,
+  parseMultigresEventMessage,
+} from './UnifiedLogs.utils'
 
 describe('buildUnifiedLogsUrl', () => {
   const parse = (url: string) => {
@@ -43,5 +47,44 @@ describe('buildUnifiedLogsUrl', () => {
       buildUnifiedLogsUrl({ projectRef: 'abc', logType: 'storage', start: new Date() })
     )
     expect(params.has('date')).toBe(false)
+  })
+})
+
+describe('parseMultigresEventMessage', () => {
+  it('extracts the msg field from a stringified JSON payload', () => {
+    const value = JSON.stringify({
+      time: '2026-07-03T09:42:12.344925698Z',
+      level: 'INFO',
+      msg: 'user pool capacity updated',
+      user: 'supabase_admin',
+    })
+    expect(parseMultigresEventMessage(value)).toBe('user pool capacity updated')
+  })
+
+  it('returns the raw string when it is not JSON', () => {
+    expect(parseMultigresEventMessage('plain text message')).toBe('plain text message')
+  })
+
+  it('returns the raw string when msg is missing or empty', () => {
+    expect(parseMultigresEventMessage(JSON.stringify({ level: 'INFO' }))).toBe('{"level":"INFO"}')
+    expect(parseMultigresEventMessage(JSON.stringify({ msg: '  ' }))).toBe('{"msg":"  "}')
+  })
+
+  it('passes empty values through unchanged', () => {
+    expect(parseMultigresEventMessage(undefined)).toBeUndefined()
+    expect(parseMultigresEventMessage('')).toBe('')
+  })
+})
+
+describe('getEventMessageDisplay', () => {
+  it('parses multigres rows into their msg field', () => {
+    const value = JSON.stringify({ level: 'INFO', msg: 'Configuring synchronous replication' })
+    expect(getEventMessageDisplay('multigres', value)).toBe('Configuring synchronous replication')
+  })
+
+  it('leaves non-parsed log types untouched', () => {
+    expect(getEventMessageDisplay('postgres', 'relation does not exist')).toBe(
+      'relation does not exist'
+    )
   })
 })

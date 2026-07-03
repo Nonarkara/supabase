@@ -3,7 +3,7 @@ import { Checkbox, cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
 import { STATUS_CODE_LABELS } from '../UnifiedLogs.constants'
 import { ColumnFilterSchema, ColumnSchema } from '../UnifiedLogs.schema'
-import { parseAuthLogEventMessage } from '../UnifiedLogs.utils'
+import { getEventMessageDisplay } from '../UnifiedLogs.utils'
 import { HoverCardTimestamp } from './HoverCardTimestamp'
 import { LogTypeIcon } from './LogTypeIcon'
 import { DataTableColumnLevelIndicator } from '@/components/ui/DataTable/DataTableColumn/DataTableColumnLevelIndicator'
@@ -234,7 +234,8 @@ export function generateDynamicColumns({ data }: { data: ColumnSchema[] }): {
         const value = row.getValue<ColumnSchema['event_message']>('event_message')
         const logType = row.original.log_type
         const logCount = row.original.log_count
-        const displayMessage = logType === 'auth' ? parseAuthLogEventMessage(value) : value
+        const displayMessage = getEventMessageDisplay(logType, value)
+        const capitalizeMessage = logType === 'auth' || logType === 'multigres'
 
         return (
           <div className="flex flex-row gap-2 items-center">
@@ -252,7 +253,7 @@ export function generateDynamicColumns({ data }: { data: ColumnSchema[] }): {
             )}
             {displayMessage && (
               <span
-                className={cn('text-muted-foreground', logType === 'auth' && 'capitalize-sentence')}
+                className={cn('text-muted-foreground', capitalizeMessage && 'capitalize-sentence')}
               >
                 {displayMessage}
               </span>

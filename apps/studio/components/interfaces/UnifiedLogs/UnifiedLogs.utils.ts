@@ -157,3 +157,43 @@ export function parseAuthLogEventMessage(value: string | undefined): string | un
     return value
   }
 }
+
+/**
+ * Parses a Multigres log event_message, which is a stringified JSON object
+ * (e.g. {"time":"...","level":"INFO","msg":"user pool capacity updated",...}).
+ * Extracts the human-readable msg field, falling back to the raw string so
+ * unexpected formats still render.
+ */
+export function parseMultigresEventMessage(value: string | undefined): string | undefined {
+  if (!value) return value
+
+  try {
+    const parsed = JSON.parse(value)
+
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      typeof parsed.msg === 'string' &&
+      parsed.msg.trim()
+    ) {
+      return parsed.msg
+    }
+
+    return value
+  } catch (error) {
+    return value
+  }
+}
+
+/**
+ * Returns the display string for a log row's event_message, applying the
+ * per-service parsing that turns stringified JSON payloads into readable text.
+ */
+export function getEventMessageDisplay(
+  logType: string,
+  value: string | undefined
+): string | undefined {
+  if (logType === 'auth') return parseAuthLogEventMessage(value)
+  if (logType === 'multigres') return parseMultigresEventMessage(value)
+  return value
+}
