@@ -45,6 +45,12 @@ export default defineConfig({
 
 Create a `.env.local` file and populate with your Supabase connection variables that you can get from the helper above, or [from the project **Connect** panel](/dashboard/project/_?showConnect=true&framework=astro&tab=frameworks):
 
+<Button variant="primary" asChild>
+  <a href="/dashboard/project/_?showConnect=true&connectTab=frameworks&framework=astro">
+    Open Connect panel
+  </a>
+</Button>
+
 <$CodeTabs>
 
 ```text name=.env.local
@@ -70,8 +76,6 @@ export function createServerClient() {
 ```
 
 ## 8. Query Supabase data from Astro
-
-<$Partial path="uiLibCta.mdx" />
 
 Create a new file at `src/pages/instruments.astro` and populate with the following.
 
@@ -109,6 +113,7 @@ npm run dev
 
 ## Next steps
 
+- Explore [drop-in UI components](/ui) for your Supabase app
 - Set up [Auth](/docs/guides/auth) for your app
 - [Insert more data](/docs/guides/database/import-data) into your database
 - Upload and serve static files using [Storage](/docs/guides/storage)

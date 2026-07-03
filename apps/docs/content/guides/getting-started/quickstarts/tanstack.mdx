@@ -30,6 +30,10 @@ cd my-app && npm install @supabase/supabase-js
 
 Create a `.env` file in the root of your project and populate with your Supabase connection variables that you can get from the helper above, or [from the project **Connect** panel](/dashboard/project/_?showConnect=true):
 
+<Button variant="primary" asChild>
+  <a href="/dashboard/project/_?showConnect=true">Open Connect panel</a>
+</Button>
+
 <$CodeTabs>
 
 ```text name=.env
@@ -53,8 +57,6 @@ export const supabase = createClient(
 ```
 
 ## 7. Query data from the app
-
-<$Partial path="uiLibCta.mdx" />
 
 Replace the contents of `src/routes/index.tsx` with the following code to add a loader function that fetches the instruments data and displays it on the page.
 
@@ -94,6 +96,7 @@ npm run dev
 
 ## Next steps
 
+- Explore [drop-in UI components](/ui) for your Supabase app
 - Set up [Auth](/docs/guides/auth) for your app
 - [Insert more data](/docs/guides/database/import-data) into your database
 - Upload and serve static files using [Storage](/docs/guides/storage)
