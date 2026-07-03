@@ -333,13 +333,22 @@ Use the `event` parameter to listen only to a specific database event. `event` c
 >
 <TabPanel id="js" label="JavaScript">
 
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="insert"
+  queryGroup="pg-changes-event"
+>
+<TabPanel id="insert" label="Insert">
+
 ```js
 const changes = supabase
   .channel('schema-db-changes')
   .on(
     'postgres_changes',
     {
-      event: 'INSERT', // Listen only to INSERTs. Use 'UPDATE', 'DELETE', or '*' for other events.
+      event: 'INSERT',
       schema: 'public',
     },
     (payload) => console.log(payload)
@@ -348,14 +357,76 @@ const changes = supabase
 ```
 
 </TabPanel>
+<TabPanel id="update" label="Update">
+
+```js
+const changes = supabase
+  .channel('schema-db-changes')
+  .on(
+    'postgres_changes',
+    {
+      event: 'UPDATE',
+      schema: 'public',
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+</TabPanel>
+<TabPanel id="delete" label="Delete">
+
+```js
+const changes = supabase
+  .channel('schema-db-changes')
+  .on(
+    'postgres_changes',
+    {
+      event: 'DELETE',
+      schema: 'public',
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+</TabPanel>
+<TabPanel id="all" label="All events">
+
+```js
+const changes = supabase
+  .channel('schema-db-changes')
+  .on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+    },
+    (payload) => console.log(payload)
+  )
+  .subscribe()
+```
+
+</TabPanel>
+</Tabs>
+
+</TabPanel>
 <$Show if="sdk:dart">
 <TabPanel id="dart" label="Dart">
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="insert"
+  queryGroup="pg-changes-event"
+>
+<TabPanel id="insert" label="Insert">
 
 ```dart
 supabase
     .channel('schema-db-changes')
     .onPostgresChanges(
-        // Use .update, .delete, or .all for other events
         event: PostgresChangeEvent.insert,
         schema: 'public',
         callback: (payload) => print(payload))
@@ -363,11 +434,62 @@ supabase
 ```
 
 </TabPanel>
+<TabPanel id="update" label="Update">
+
+```dart
+supabase
+    .channel('schema-db-changes')
+    .onPostgresChanges(
+        event: PostgresChangeEvent.update,
+        schema: 'public',
+        callback: (payload) => print(payload))
+    .subscribe();
+```
+
+</TabPanel>
+<TabPanel id="delete" label="Delete">
+
+```dart
+supabase
+    .channel('schema-db-changes')
+    .onPostgresChanges(
+        event: PostgresChangeEvent.delete,
+        schema: 'public',
+        callback: (payload) => print(payload))
+    .subscribe();
+```
+
+</TabPanel>
+<TabPanel id="all" label="All events">
+
+```dart
+supabase
+    .channel('schema-db-changes')
+    .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        callback: (payload) => print(payload))
+    .subscribe();
+```
+
+</TabPanel>
+</Tabs>
+
+</TabPanel>
 </$Show>
 <$Show if="sdk:swift">
 <TabPanel id="swift" label="Swift">
 
-Pass the action type to select the event. Use `InsertAction.self`, `UpdateAction.self`, `DeleteAction.self`, or `AnyAction.self` to listen to all changes.
+Pass the action type to select the event.
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="insert"
+  queryGroup="pg-changes-event"
+>
+<TabPanel id="insert" label="Insert">
 
 ```swift
 let myChannel = await supabase.channel("schema-db-changes")
@@ -382,11 +504,73 @@ for await change in changes {
 ```
 
 </TabPanel>
+<TabPanel id="update" label="Update">
+
+```swift
+let myChannel = await supabase.channel("schema-db-changes")
+
+let changes = await myChannel.postgresChange(UpdateAction.self, schema: "public")
+
+await myChannel.subscribe()
+
+for await change in changes {
+  print(change.record)
+}
+```
+
+</TabPanel>
+<TabPanel id="delete" label="Delete">
+
+```swift
+let myChannel = await supabase.channel("schema-db-changes")
+
+let changes = await myChannel.postgresChange(DeleteAction.self, schema: "public")
+
+await myChannel.subscribe()
+
+for await change in changes {
+  print(change.oldRecord)
+}
+```
+
+</TabPanel>
+<TabPanel id="all" label="All events">
+
+```swift
+let myChannel = await supabase.channel("schema-db-changes")
+
+let changes = await myChannel.postgresChange(AnyAction.self, schema: "public")
+
+await myChannel.subscribe()
+
+for await change in changes {
+  switch change {
+  case .insert(let action): print(action.record)
+  case .update(let action): print(action.record)
+  case .delete(let action): print(action.oldRecord)
+  case .select(let action): print(action.record)
+  }
+}
+```
+
+</TabPanel>
+</Tabs>
+
+</TabPanel>
 </$Show>
 <$Show if="sdk:kotlin">
 <TabPanel id="kotlin" label="Kotlin">
 
-Pass the action type to select the event. Use `PostgresAction.Insert`, `PostgresAction.Update`, `PostgresAction.Delete`, or `PostgresAction` to listen to all changes.
+Pass the action type to select the event.
+
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="insert"
+  queryGroup="pg-changes-event"
+>
+<TabPanel id="insert" label="Insert">
 
 ```kotlin
 val myChannel = supabase.channel("db-changes")
@@ -403,18 +587,124 @@ myChannel.subscribe()
 ```
 
 </TabPanel>
+<TabPanel id="update" label="Update">
+
+```kotlin
+val myChannel = supabase.channel("db-changes")
+
+val changes = myChannel.postgresChangeFlow<PostgresAction.Update>(schema = "public")
+
+changes
+    .onEach {
+        println(it.record)
+    }
+    .launchIn(yourCoroutineScope)
+
+myChannel.subscribe()
+```
+
+</TabPanel>
+<TabPanel id="delete" label="Delete">
+
+```kotlin
+val myChannel = supabase.channel("db-changes")
+
+val changes = myChannel.postgresChangeFlow<PostgresAction.Delete>(schema = "public")
+
+changes
+    .onEach {
+        println(it.oldRecord)
+    }
+    .launchIn(yourCoroutineScope)
+
+myChannel.subscribe()
+```
+
+</TabPanel>
+<TabPanel id="all" label="All events">
+
+```kotlin
+val myChannel = supabase.channel("db-changes")
+
+val changes = myChannel.postgresChangeFlow<PostgresAction>(schema = "public")
+
+changes
+    .onEach {
+        when (it) { //You can also check for <is PostgresAction.Insert>, etc.. manually
+            is HasRecord -> println(it.record)
+            is HasOldRecord -> println(it.oldRecord)
+            else -> println(it)
+        }
+    }
+    .launchIn(yourCoroutineScope)
+
+myChannel.subscribe()
+```
+
+</TabPanel>
+</Tabs>
+
+</TabPanel>
 </$Show>
 <$Show if="sdk:python">
 <TabPanel id="python" label="Python">
 
+<Tabs
+  scrollable
+  size="small"
+  type="underlined"
+  defaultActiveId="insert"
+  queryGroup="pg-changes-event"
+>
+<TabPanel id="insert" label="Insert">
+
 ```python
 changes = supabase.channel('schema-db-changes').on_postgres_changes(
-  "INSERT", # Listen only to INSERTs. Use "UPDATE", "DELETE", or "*" for other events.
+  "INSERT",
   schema="public",
   callback=lambda payload: print(payload)
 )
 .subscribe()
 ```
+
+</TabPanel>
+<TabPanel id="update" label="Update">
+
+```python
+changes = supabase.channel('schema-db-changes').on_postgres_changes(
+  "UPDATE",
+  schema="public",
+  callback=lambda payload: print(payload)
+)
+.subscribe()
+```
+
+</TabPanel>
+<TabPanel id="delete" label="Delete">
+
+```python
+changes = supabase.channel('schema-db-changes').on_postgres_changes(
+  "DELETE",
+  schema="public",
+  callback=lambda payload: print(payload)
+)
+.subscribe()
+```
+
+</TabPanel>
+<TabPanel id="all" label="All events">
+
+```python
+changes = supabase.channel('schema-db-changes').on_postgres_changes(
+  "*",
+  schema="public",
+  callback=lambda payload: print(payload)
+)
+.subscribe()
+```
+
+</TabPanel>
+</Tabs>
 
 </TabPanel>
 </$Show>
