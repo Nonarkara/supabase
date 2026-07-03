@@ -7,15 +7,23 @@ import type { SubmittedSupportRequest } from './SupportForm.state'
 import { NO_PROJECT_MARKER } from './SupportForm.utils'
 import { SupportAssistantSuccessCardContent as SupportAssistantSuccessCard } from '@/components/ui/AIAssistantPanel/SupportAssistantSuccessCardContent'
 
-const { chatInstances, chats, mockNewChat, mockOpenSidebar, mockSelectChat, mockTrack } =
-  vi.hoisted(() => ({
-    chatInstances: {} as Record<string, MockChat>,
-    chats: {} as Record<string, { messages: unknown[]; supportMetadata?: unknown }>,
-    mockNewChat: vi.fn(),
-    mockOpenSidebar: vi.fn(),
-    mockSelectChat: vi.fn(),
-    mockTrack: vi.fn(),
-  }))
+const {
+  chatInstances,
+  chats,
+  mockNewChat,
+  mockOpenSidebar,
+  mockSelectChat,
+  mockSyncSupportChatToFront,
+  mockTrack,
+} = vi.hoisted(() => ({
+  chatInstances: {} as Record<string, MockChat>,
+  chats: {} as Record<string, { messages: unknown[]; supportMetadata?: unknown }>,
+  mockNewChat: vi.fn(),
+  mockOpenSidebar: vi.fn(),
+  mockSelectChat: vi.fn(),
+  mockSyncSupportChatToFront: vi.fn(),
+  mockTrack: vi.fn(),
+}))
 
 type MockChat = {
   messages: Array<{ id: string; role: string; parts: Array<{ type: string; text: string }> }>
@@ -47,7 +55,7 @@ vi.mock('@/state/ai-assistant-state', () => ({
 }))
 
 vi.mock('@/state/ai-chat-front-sync', () => ({
-  syncSupportChatToFront: vi.fn(),
+  syncSupportChatToFront: mockSyncSupportChatToFront,
 }))
 
 vi.mock('@/state/sidebar-manager-state', () => ({
@@ -71,6 +79,8 @@ const supportRequest: SubmittedSupportRequest = {
   library: 'javascript',
   allowSupportAccess: true,
   dashboardLogs: undefined,
+  threadRef: 'thread-ref-1',
+  frontConversationId: 'front-conversation-1',
 }
 
 describe('SupportAssistantSuccessCard', () => {
@@ -93,6 +103,7 @@ describe('SupportAssistantSuccessCard', () => {
     mockNewChat.mockReset()
     mockOpenSidebar.mockReset()
     mockSelectChat.mockReset()
+    mockSyncSupportChatToFront.mockReset()
     mockTrack.mockReset()
     nextChatMessages = []
     emitChatMessagesChange = undefined
@@ -187,6 +198,48 @@ describe('SupportAssistantSuccessCard', () => {
     )
     expect(mockSelectChat).toHaveBeenCalledWith('chat-1')
     expect(mockOpenSidebar).toHaveBeenCalledWith('ai-assistant')
+  })
+
+  it('tags the chat as a support chat and syncs it to Front on first open', async () => {
+    const user = userEvent.setup()
+    render(<SupportAssistantSuccessCard request={supportRequest} />)
+
+    const button = await screen.findByRole('button', { name: /open assistant response/i })
+    await user.click(button)
+
+    expect(chats['chat-1'].supportMetadata).toMatchObject({
+      isSupportChat: true,
+      lifecycleStatus: 'bot_active',
+      subject: 'API requests fail',
+      category: SupportCategories.PROBLEM,
+      severity: 'Normal',
+      organizationSlug: 'org-1',
+      projectRef: 'project-1',
+      allowSupportAccess: true,
+      threadRef: 'thread-ref-1',
+      frontConversationId: 'front-conversation-1',
+      lastSyncedMessageCount: 0,
+      isSyncing: false,
+      isLifecycleSyncing: false,
+    })
+
+    // The initial flush is behind a dynamic import, so it lands asynchronously
+    await waitFor(() => {
+      expect(mockSyncSupportChatToFront).toHaveBeenCalledWith(
+        'chat-1',
+        expect.objectContaining({ chats })
+      )
+    })
+
+    // A second open must not re-tag the chat or trigger another initial flush
+    const taggedMetadata = chats['chat-1'].supportMetadata
+    await user.click(button)
+
+    await waitFor(() => {
+      expect(mockSelectChat).toHaveBeenCalledTimes(2)
+    })
+    expect(chats['chat-1'].supportMetadata).toBe(taggedMetadata)
+    expect(mockSyncSupportChatToFront).toHaveBeenCalledTimes(1)
   })
 
   it('opens the generated assistant chat with keyboard activation', async () => {
