@@ -18,6 +18,7 @@ import {
 import { Admonition } from 'ui-patterns/admonition'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
+import { buildVercelInstallRouteQuery, getErrorMessage } from './install.utils'
 import { getHasInstalledObject } from '@/components/layouts/IntegrationsLayout/Integrations.utils'
 import {
   InterstitialAccountRow,
@@ -41,19 +42,6 @@ const PAGE_TITLE = buildStudioPageTitle({
   brand: 'Supabase',
 })
 
-function getErrorMessage(error: unknown): string | undefined {
-  if (error instanceof Error) return error.message
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'message' in error &&
-    typeof (error as { message: unknown }).message === 'string'
-  ) {
-    return (error as { message: string }).message
-  }
-  return undefined
-}
-
 /**
  * Variations of the Vercel integration flow.
  * They require different UI and logic.
@@ -66,7 +54,7 @@ export type VercelIntegrationFlow = 'deploy-button' | 'marketing'
 
 const VercelIntegration: NextPageWithLayout = () => {
   const router = useRouter()
-  const { code, configurationId, teamId, source } = useParams()
+  const { code, configurationId, currentProjectId, externalId, next, teamId, source } = useParams()
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null)
   const { username, primaryEmail, avatarUrl } = useProfileNameAndPicture()
 
@@ -132,12 +120,20 @@ const VercelIntegration: NextPageWithLayout = () => {
    */
   function handleRouteChange() {
     const orgSlug = selectedOrg?.slug
+    const query = buildVercelInstallRouteQuery({
+      source,
+      organizationSlug: orgSlug,
+      configurationId,
+      currentProjectId,
+      externalId,
+      next,
+    })
 
     switch (source) {
       case 'deploy-button': {
         router.push({
           pathname: `/integrations/vercel/${orgSlug}/deploy-button/new-project`,
-          query: { ...router.query, organizationSlug: orgSlug },
+          query,
         })
         break
       }
@@ -145,7 +141,7 @@ const VercelIntegration: NextPageWithLayout = () => {
       case 'external': {
         router.push({
           pathname: `/integrations/vercel/${orgSlug}/marketplace/choose-project`,
-          query: { ...router.query, organizationSlug: orgSlug },
+          query,
         })
         break
       }
@@ -243,18 +239,6 @@ const VercelIntegration: NextPageWithLayout = () => {
     missingParams.length > 0 ||
     isError
 
-  const isLoading = useMemo(() => {
-    return (
-      isLoadingVercelIntegrationCreateMutation ||
-      isLoadingOrganizationsQuery ||
-      isLoadingIntegrationsQuery
-    )
-  }, [
-    isLoadingVercelIntegrationCreateMutation,
-    isLoadingIntegrationsQuery,
-    isLoadingOrganizationsQuery,
-  ])
-
   return (
     <>
       <Head>
@@ -275,13 +259,8 @@ const VercelIntegration: NextPageWithLayout = () => {
             right={<SupabaseLogo />}
           />
         }
-        title="Install Vercel Integration"
-        description="Choose the Supabase organization Vercel can connect to"
-        footer={
-          <p className="text-xs text-foreground-lighter">
-            You can remove this integration at any time from Vercel or the Supabase dashboard.
-          </p>
-        }
+        title="Install Vercel integration"
+        description="Choose an organization to connect to Vercel"
       >
         <div className="px-6 pb-6">
           {showLoadingState ? (
@@ -295,7 +274,7 @@ const VercelIntegration: NextPageWithLayout = () => {
               <OrganizationSelect
                 organizations={organizationsData ?? []}
                 selectedOrg={selectedOrg}
-                disabled={noOrganizations || isLoading}
+                disabled={noOrganizations || dataLoading}
                 installed={installed}
                 onSelectedOrgChange={setSelectedOrg}
               />
