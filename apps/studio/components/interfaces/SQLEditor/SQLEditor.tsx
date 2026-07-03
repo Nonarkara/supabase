@@ -42,6 +42,11 @@ import {
   suffixWithLimit,
 } from './SQLEditor.utils'
 import { SqlEditorQueryBar } from './SqlEditorQueryBar'
+import {
+  DEFAULT_SQL_EDITOR_SEARCH_PATH,
+  getSqlEditorSearchPathStorageKey,
+} from './SqlEditorSearchPathSelector'
+import { resolveSqlWarehouseResultSource } from './SqlEditorWarehouseDemo'
 import { useAddDefinitions } from './useAddDefinitions'
 import { UtilityPanel } from './UtilityPanel/UtilityPanel'
 import {
@@ -58,6 +63,7 @@ import { lintKeys } from '@/data/lint/keys'
 import { useReadReplicasQuery } from '@/data/read-replicas/replicas-query'
 import { useExecuteSqlMutation } from '@/data/sql/execute-sql-mutation'
 import { isError } from '@/data/utils/error-check'
+import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useOrgAiOptInLevel } from '@/hooks/misc/useOrgOptedIntoAi'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
@@ -112,6 +118,10 @@ export const SQLEditor = () => {
   const sessionSnap = useSqlEditorSessionSnapshot()
   const diffRequest = useSqlEditorDiffRequestSnapshot()
   const getImpersonatedRoleState = useGetImpersonatedRoleState()
+  const [searchPath] = useLocalStorageQuery(
+    getSqlEditorSearchPathStorageKey(ref ?? 'unknown'),
+    DEFAULT_SQL_EDITOR_SEARCH_PATH
+  )
   const databaseSelectorState = useDatabaseSelectorStateSnapshot()
   const { aiOptInLevel } = useOrgAiOptInLevel()
 
@@ -220,7 +230,7 @@ export const SQLEditor = () => {
   const { mutate: execute, isPending: isExecuting } = useExecuteSqlMutation({
     onSuccess(data, vars) {
       if (id) {
-        sessionSnap.addResult(id, data.result, vars.autoLimit)
+        sessionSnap.addResult(id, data.result, vars.autoLimit, vars.warehouseResultSource)
 
         if (!disablePrettyExplain && isExplainQuery(data.result)) {
           sessionSnap.addExplainResult(id, data.result)
@@ -268,7 +278,7 @@ export const SQLEditor = () => {
           }
         }
 
-        sessionSnap.addResultError(id, error, vars.autoLimit)
+        sessionSnap.addResultError(id, error, vars.autoLimit, vars.warehouseResultSource)
       }
 
       refocusEditorAfterRunIfNeeded()
@@ -418,12 +428,14 @@ export const SQLEditor = () => {
       const userSql = rawSql(sql)
       const { appendAutoLimit } = checkIfAppendLimitRequired(userSql, limit)
       const formattedSql = suffixWithLimit(userSql, limit)
+      const warehouseResultSource = resolveSqlWarehouseResultSource(userSql, searchPath)
 
       execute({
         projectRef: project.ref,
         connectionString: connectionString,
         sql: wrapWithRoleImpersonation(formattedSql, impersonatedRoleState),
         autoLimit: appendAutoLimit ? limit : undefined,
+        warehouseResultSource,
         isRoleImpersonationEnabled: isRoleImpersonationEnabled(impersonatedRoleState.role),
         isStatementTimeoutDisabled: true,
         contextualInvalidation: true,
@@ -449,6 +461,7 @@ export const SQLEditor = () => {
       databases,
       eventTriggers,
       limit,
+      searchPath,
       track,
     ]
   )

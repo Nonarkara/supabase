@@ -2,6 +2,7 @@ import { useParams } from 'common'
 import { toast } from 'sonner'
 import { Tabs_Shadcn_, TabsContent_Shadcn_, TabsList_Shadcn_, TabsTrigger_Shadcn_ } from 'ui'
 
+import { SqlWarehouseResultStatus } from '../SqlEditorWarehouseDemo'
 import { ChartConfig } from './ChartConfig'
 import { SqlResultsSummary } from './SqlResultsSummary'
 import { UtilityTabExplain } from './UtilityTabExplain'
@@ -151,7 +152,12 @@ export const UtilityPanel = ({
 
         <div className="flex min-w-0 items-center gap-x-3">
           {showResultsSummary && (
-            <SqlResultsSummary rowCount={result.rows.length} autoLimit={result.autoLimit} />
+            <>
+              {result.warehouseResultSource && (
+                <SqlWarehouseResultStatus source={result.warehouseResultSource} />
+              )}
+              <SqlResultsSummary rowCount={result.rows.length} autoLimit={result.autoLimit} />
+            </>
           )}
 
           {result?.rows && (

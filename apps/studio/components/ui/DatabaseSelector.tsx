@@ -39,6 +39,7 @@ interface DatabaseSelectorProps {
   className?: string
   align?: 'start' | 'end'
   isForm?: boolean
+  label?: string
 }
 
 export const DatabaseSelector = ({
@@ -50,6 +51,7 @@ export const DatabaseSelector = ({
   align = 'end',
   className,
   isForm = false,
+  label = 'Source',
 }: DatabaseSelectorProps) => {
   const router = useRouter()
   const { ref: projectRef } = useParams()
@@ -85,9 +87,7 @@ export const DatabaseSelector = ({
   ) : (
     <>
       <span className="capitalize">
-        {isLoading || selectedDatabase?.identifier === projectRef
-          ? 'Primary database'
-          : 'Read replica'}
+        {isLoading || selectedDatabase?.identifier === projectRef ? 'Primary' : 'Read replica'}
       </span>
       {isSuccess && selectedDatabase?.identifier !== projectRef && (
         <span>
@@ -132,7 +132,7 @@ export const DatabaseSelector = ({
             )}
           >
             <div className="flex items-center gap-1">
-              <span className="text-foreground-muted">Source</span>
+              <span className="text-foreground-muted">{label}</span>
               <span className="flex items-center gap-1">
                 {isLoading ? <Loader2 className="animate-spin" size={12} /> : selectedDatabaseLabel}
               </span>
@@ -222,7 +222,7 @@ export const DatabaseSelector = ({
                       <div className="w-full flex items-center justify-between">
                         <p>
                           {database.identifier === projectRef
-                            ? 'Primary database'
+                            ? 'Primary'
                             : `Read replica (${region} - ${id})`}
                         </p>
                         {database.identifier === selectedDatabaseId && <Check size={16} />}
