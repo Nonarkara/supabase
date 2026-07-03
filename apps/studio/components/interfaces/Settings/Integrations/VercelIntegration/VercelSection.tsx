@@ -148,7 +148,7 @@ export const VercelSection = ({ isProjectScoped }: { isProjectScoped: boolean })
         <div className="flex flex-1 items-start gap-6">
           <IntegrationSectionIcon title="vercel" />
           <PageSectionSummary>
-            <PageSectionTitle>Vercel integration</PageSectionTitle>
+            <PageSectionTitle>Vercel</PageSectionTitle>
             <PageSectionDescription>{description}</PageSectionDescription>
           </PageSectionSummary>
         </div>
