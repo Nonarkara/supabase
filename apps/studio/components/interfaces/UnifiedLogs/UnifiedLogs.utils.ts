@@ -120,6 +120,7 @@ export function formatServiceTypeForDisplay(serviceType: string): string {
     realtime: 'Realtime',
     supavisor: 'Supavisor',
     pgbouncer: 'PgBouncer',
+    multigres: 'Multigres',
   }
 
   return specialCases[serviceType.toLowerCase()] || serviceType
