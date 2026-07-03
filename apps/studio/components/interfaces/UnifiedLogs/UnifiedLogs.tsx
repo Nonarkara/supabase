@@ -62,6 +62,7 @@ import { useUnifiedLogsChartQuery } from '@/data/logs/unified-logs-chart-query'
 import { useUnifiedLogsCountQuery } from '@/data/logs/unified-logs-count-query'
 import { useUnifiedLogsInfiniteQuery } from '@/data/logs/unified-logs-infinite-query'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
+import { useIsHighAvailability } from '@/hooks/misc/useSelectedProject'
 import { useTrack } from '@/lib/telemetry/track'
 import { SHORTCUT_IDS } from '@/state/shortcuts/registry'
 import { useShortcut } from '@/state/shortcuts/useShortcut'
@@ -105,6 +106,8 @@ export const UnifiedLogs = () => {
     observer.observe(topBar)
     return () => observer.unobserve(topBar)
   }, [])
+
+  const isHighAvailability = useIsHighAvailability()
 
   const [sorting, setSorting] = useState<SortingState>(defaultColumnSorting)
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultColumnFilters)
@@ -267,16 +270,26 @@ export const UnifiedLogs = () => {
   // - Each facet just handles its own state, rather than getting passed down like this
   const filterFields = useMemo(() => {
     return defaultFilterFields.map((field) => {
-      const facetsField = facets?.[field.value]
+      // Multigres logs only exist on high availability projects
+      const gatedField =
+        field.value === 'log_type' && !isHighAvailability
+          ? { ...field, options: field.options.filter((option) => option.value !== 'multigres') }
+          : field
+
+      const facetsField = facets?.[gatedField.value]
 
       // If no facets data available, use the predefined field
-      if (!facetsField) return field
+      if (!facetsField) return gatedField
 
       // For hardcoded enum fields, keep the predefined options (facets only used for counts)
-      if (field.value === 'log_type' || field.value === 'method' || field.value === 'level') {
+      if (
+        gatedField.value === 'log_type' ||
+        gatedField.value === 'method' ||
+        gatedField.value === 'level'
+      ) {
         const fieldWithCounts = {
-          ...field,
-          options: field.options.map((x) => {
+          ...gatedField,
+          options: gatedField.options.map((x) => {
             return { ...x, count: facetsField.rows.find((y) => y.value === x.value)?.total ?? 0 }
           }),
         }
@@ -290,9 +303,9 @@ export const UnifiedLogs = () => {
         count: total,
       }))
 
-      return { ...field, options }
+      return { ...gatedField, options }
     })
-  }, [facets])
+  }, [facets, isHighAvailability])
 
   const applyFilterSearch = () => {
     setSearch(buildFilterSearchUpdate(columnFilters, filterFields))
