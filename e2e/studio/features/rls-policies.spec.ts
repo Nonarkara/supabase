@@ -1,5 +1,6 @@
 import { expect, Page } from '@playwright/test'
 
+import { runAxeCheck } from '../utils/axe-helpers.js'
 import { createTableWithRLS, dropTable } from '../utils/db/queries.js'
 import { test, withSetupCleanup } from '../utils/test.js'
 import { toUrl } from '../utils/to-url.js'
@@ -95,7 +96,7 @@ test.describe('RLS Policies', () => {
     test('shows Unrestricted badge when RLS is disabled for public table', async ({
       page,
       ref,
-    }) => {
+    }, testInfo) => {
       const policyTableName = 'pw_rls_policy_unrestricted_table'
       await using _ = await withSetupCleanup(
         async () => {
@@ -126,6 +127,7 @@ test.describe('RLS Policies', () => {
           page.getByRole('heading', { name: 'Disable Row Level Security' }),
           'RLS disable confirmation modal should appear'
         ).toBeVisible({ timeout: 50000 })
+        await runAxeCheck(page, testInfo, 'RLS Policies - Disable RLS Confirmation')
         await expect(
           page.getByRole('alertdialog'),
           'RLS disable confirmation should explain the access risk'
@@ -183,7 +185,7 @@ test.describe('RLS Policies', () => {
   })
 
   test.describe('Create RLS Policy', () => {
-    test('should create a SELECT policy successfully', async ({ page, ref }) => {
+    test('should create a SELECT policy successfully', async ({ page, ref }, testInfo) => {
       const policyTableName = 'pw_rls_policy_select_table'
       const policySelectName = 'pw_test_select_policy'
       await using _ = await withSetupCleanup(
@@ -204,6 +206,7 @@ test.describe('RLS Policies', () => {
         page.getByRole('heading', { name: 'Create a new Row Level Security policy' }),
         'Policy creation dialog should open'
       ).toBeVisible()
+      await runAxeCheck(page, testInfo, 'RLS Policies - Create Policy Dialog')
 
       // Hide the sidebar tools
       await page.getByText('Hide tools').click()
@@ -220,6 +223,7 @@ test.describe('RLS Policies', () => {
       // Fill in USING clause - allow all access
       await page.getByRole('textbox', { name: /Editor content/i }).focus()
       await page.keyboard.type('true')
+      await runAxeCheck(page, testInfo, 'RLS Policies - Using/With Check Editors')
 
       // Save policy
       await page.getByRole('button', { name: 'Save policy' }).click()
@@ -239,7 +243,10 @@ test.describe('RLS Policies', () => {
       await expect(policyRow.locator('code').filter({ hasText: /^public$/ })).toBeVisible()
     })
 
-    test('should create an INSERT policy with authenticated role', async ({ page, ref }) => {
+    test('should create an INSERT policy with authenticated role', async ({
+      page,
+      ref,
+    }, testInfo) => {
       const policyTableName = 'pw_rls_policy_insert_table'
       const policyInsertName = 'pw_test_insert_policy'
       await using _ = await withSetupCleanup(
@@ -258,6 +265,7 @@ test.describe('RLS Policies', () => {
       await expect(
         page.getByRole('heading', { name: 'Create a new Row Level Security policy' })
       ).toBeVisible()
+      await runAxeCheck(page, testInfo, 'RLS Policies - Create Policy Dialog')
 
       // Hide the sidebar tools
       await page.getByText('Hide tools').click()
@@ -267,10 +275,12 @@ test.describe('RLS Policies', () => {
 
       // Select INSERT command
       await page.getByRole('radio', { name: 'INSERT' }).click()
+      await runAxeCheck(page, testInfo, 'RLS Policies - Command Selection')
 
       // Select target role - authenticated
       await page.getByRole('combobox', { name: 'Target Roles' }).click()
       await page.getByRole('option', { name: 'authenticated' }).click()
+      await runAxeCheck(page, testInfo, 'RLS Policies - Target Roles Selector')
 
       // Close the dropdown
       await page.keyboard.press('Escape')
@@ -278,6 +288,7 @@ test.describe('RLS Policies', () => {
       // Fill in WITH CHECK clause - allow all inserts
       await page.getByRole('textbox', { name: /Editor content/i }).focus()
       await page.keyboard.type('true')
+      await runAxeCheck(page, testInfo, 'RLS Policies - Using/With Check Editors')
 
       // Save policy
       await page.getByRole('button', { name: 'Save policy' }).click()
@@ -294,7 +305,10 @@ test.describe('RLS Policies', () => {
       await expect(policyRow.locator('code').filter({ hasText: /^authenticated$/ })).toBeVisible()
     })
 
-    test('should create an UPDATE policy with custom condition', async ({ page, ref }) => {
+    test('should create an UPDATE policy with custom condition', async ({
+      page,
+      ref,
+    }, testInfo) => {
       const policyTableName = 'pw_rls_policy_update_table'
       const policyUpdateName = 'pw_test_update_policy'
       await using _ = await withSetupCleanup(
@@ -313,6 +327,7 @@ test.describe('RLS Policies', () => {
       await expect(
         page.getByRole('heading', { name: 'Create a new Row Level Security policy' })
       ).toBeVisible()
+      await runAxeCheck(page, testInfo, 'RLS Policies - Create Policy Dialog')
 
       // Hide the sidebar tools
       await page.getByText('Hide tools').click()
@@ -339,6 +354,7 @@ test.describe('RLS Policies', () => {
         .nth(1)
         .focus()
       await page.keyboard.type('true')
+      await runAxeCheck(page, testInfo, 'RLS Policies - Using/With Check Editors')
 
       // Save policy
       await page.getByRole('button', { name: 'Save policy' }).click()
@@ -354,7 +370,7 @@ test.describe('RLS Policies', () => {
       await expect(policyRow.locator('code').filter({ hasText: /^UPDATE$/ })).toBeVisible()
     })
 
-    test('should create a DELETE policy', async ({ page, ref }) => {
+    test('should create a DELETE policy', async ({ page, ref }, testInfo) => {
       const policyTableName = 'pw_rls_policy_delete_table'
       const policyDeleteName = 'pw_test_delete_policy'
       await using _ = await withSetupCleanup(
@@ -373,6 +389,7 @@ test.describe('RLS Policies', () => {
       await expect(
         page.getByRole('heading', { name: 'Create a new Row Level Security policy' })
       ).toBeVisible()
+      await runAxeCheck(page, testInfo, 'RLS Policies - Create Policy Dialog')
 
       // Hide the sidebar tools
       await page.getByText('Hide tools').click()
@@ -391,6 +408,7 @@ test.describe('RLS Policies', () => {
       // Fill in USING clause
       await page.getByRole('textbox', { name: /Editor content/i }).focus()
       await page.keyboard.type('true')
+      await runAxeCheck(page, testInfo, 'RLS Policies - Using/With Check Editors')
 
       // Save policy
       await page.getByRole('button', { name: 'Save policy' }).click()

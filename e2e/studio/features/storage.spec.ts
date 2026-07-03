@@ -2,6 +2,7 @@ import path from 'path'
 import { expect } from '@playwright/test'
 
 import { env } from '../env.config.js'
+import { runAxeCheck } from '../utils/axe-helpers.js'
 import { expectClipboardValue } from '../utils/clipboard.js'
 import {
   createBucket,
@@ -39,11 +40,11 @@ test.describe('Storage', () => {
     await expect(page).toHaveURL(new RegExp(`/project/${ref}/storage/files`))
   })
 
-  test('can create a private bucket', async ({ page, ref }) => {
+  test('can create a private bucket', async ({ page, ref }, testInfo) => {
     const bucketName = `${bucketNamePrefix}_private`
 
     await deleteBucketViaApi(bucketName)
-    await createBucket(page, ref, bucketName, false)
+    await createBucket(page, ref, bucketName, false, testInfo)
 
     // Verify it's marked as private (no "Public" badge should be visible)
     const bucketRow = page.getByRole('row').filter({ hasText: bucketName })
@@ -54,11 +55,11 @@ test.describe('Storage', () => {
     ).not.toBeVisible()
   })
 
-  test('can create a public bucket', async ({ page, ref }) => {
+  test('can create a public bucket', async ({ page, ref }, testInfo) => {
     const bucketName = `${bucketNamePrefix}_public`
 
     await deleteBucketViaApi(bucketName)
-    await createBucket(page, ref, bucketName, true)
+    await createBucket(page, ref, bucketName, true, testInfo)
 
     // Verify it's marked as public - wait for the badge to appear
     const bucketRow = page.getByRole('row').filter({ hasText: bucketName })
@@ -71,7 +72,7 @@ test.describe('Storage', () => {
     ).toBeVisible()
   })
 
-  test('can edit bucket settings', async ({ page, ref }) => {
+  test('can edit bucket settings', async ({ page, ref }, testInfo) => {
     const bucketName = `${bucketNamePrefix}_edit`
 
     // Create a fresh private bucket via API
@@ -89,6 +90,9 @@ test.describe('Storage', () => {
     // Toggle public setting
     const publicToggle = page.getByRole('switch', { name: 'Public bucket' })
     await expect(publicToggle, 'Public toggle should be visible').toBeVisible()
+
+    await runAxeCheck(page, testInfo, 'Storage - Bucket Settings Dialog')
+
     await publicToggle.click()
 
     // Save changes
@@ -105,7 +109,7 @@ test.describe('Storage', () => {
     ).toBeVisible()
   })
 
-  test('can delete a bucket', async ({ page, ref }) => {
+  test('can delete a bucket', async ({ page, ref }, testInfo) => {
     const bucketName = `${bucketNamePrefix}_delbkt`
 
     // Create a bucket via API
@@ -114,7 +118,7 @@ test.describe('Storage', () => {
     await navigateToStorageFiles(page, ref)
 
     // Delete it via UI
-    await deleteBucket(page, ref, bucketName)
+    await deleteBucket(page, ref, bucketName, testInfo)
 
     // Verify it's gone
     await expect(
@@ -226,7 +230,7 @@ test.describe('Storage', () => {
     await renameItem(page, folderName, newFolderName)
   })
 
-  test('can copy a file url regardless of the opened folders', async ({ page, ref }) => {
+  test('can copy a file url regardless of the opened folders', async ({ page, ref }, testInfo) => {
     const bucketName = `${bucketNamePrefix}_urls`
     const folderName = 'test_folder'
     const rootFileName = 'test-file.txt'
@@ -249,6 +253,7 @@ test.describe('Storage', () => {
     // Right-click on the folder file to open context menu
     const folderFile = page.getByTitle(folderFileName)
     await folderFile.click({ button: 'right' })
+    await runAxeCheck(page, testInfo, 'Storage - File/Folder Context Menu')
     await page.getByRole('menuitem', { name: 'Get URL' }).click()
     await expectClipboardValue({
       page,
@@ -268,6 +273,7 @@ test.describe('Storage', () => {
 
     // Click the actions button on the folder file to open dropdown menu
     await page.getByRole('button', { name: `${folderFileName} actions` }).click()
+    await runAxeCheck(page, testInfo, 'Storage - File/Folder Actions Dropdown')
     await page.getByRole('menuitem', { name: 'Get URL' }).click()
     await expectClipboardValue({
       page,
@@ -286,6 +292,7 @@ test.describe('Storage', () => {
 
     // Click the folder file to open its preview pane
     await folderFile.click()
+    await runAxeCheck(page, testInfo, 'Storage - File Preview Panel')
     await page.getByRole('button', { name: 'Get URL' }).click()
     await expectClipboardValue({
       page,
@@ -398,7 +405,7 @@ test.describe('Storage', () => {
     await expect(page.getByTitle(fileName)).not.toBeVisible()
   })
 
-  test('can delete a file', async ({ page, ref }) => {
+  test('can delete a file', async ({ page, ref }, testInfo) => {
     const bucketName = `${bucketNamePrefix}_delete_file`
     const fileName = 'test-file.txt'
 
@@ -412,10 +419,10 @@ test.describe('Storage', () => {
     await uploadFile(page, filePath, fileName)
 
     // Delete the file
-    await deleteItem(page, fileName)
+    await deleteItem(page, fileName, testInfo)
   })
 
-  test('can delete a folder', async ({ page, ref }) => {
+  test('can delete a folder', async ({ page, ref }, testInfo) => {
     const bucketName = `${bucketNamePrefix}_delete_folder`
     const folderName = 'test_folder'
 
@@ -427,7 +434,7 @@ test.describe('Storage', () => {
     await createFolder(page, folderName)
 
     // Delete the folder
-    await deleteItem(page, folderName)
+    await deleteItem(page, folderName, testInfo)
   })
 
   test('can download a file', async ({ page, ref }) => {

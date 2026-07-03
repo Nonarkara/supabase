@@ -1,0 +1,12 @@
+{
+  "aria-allowed-attr": 8,
+  "aria-command-name": 2,
+  "aria-required-children": 3,
+  "aria-required-parent": 2,
+  "aria-valid-attr-value": 2,
+  "button-name": 2,
+  "color-contrast": 10,
+  "list": 2,
+  "listitem": 12,
+  "nested-interactive": 2
+}

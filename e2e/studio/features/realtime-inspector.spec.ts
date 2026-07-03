@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test'
 
+import { runAxeCheck } from '../utils/axe-helpers.js'
 import {
   getMessageCount,
   joinChannel,
@@ -34,29 +35,30 @@ test.describe('Realtime Inspector', () => {
       await expect(page.getByText('Create realtime experiences')).toBeVisible()
     })
 
-    test('channel selection popover opens and works', async ({ page }) => {
+    test('channel selection popover opens and works', async ({ page }, testInfo) => {
       await page.getByRole('button', { name: 'Join a channel' }).click()
 
       await expect(page.getByPlaceholder('Enter a channel name')).toBeVisible({ timeout: 5000 })
       await expect(page.getByRole('button', { name: 'Listen to channel' })).toBeVisible()
       await expect(page.getByText('Is channel private?')).toBeVisible()
+      await runAxeCheck(page, testInfo, 'Realtime Inspector - Join Channel Popover')
 
       await page.keyboard.press('Escape')
     })
 
-    test('can join and leave a channel', async ({ page }) => {
+    test('can join and leave a channel', async ({ page }, testInfo) => {
       const testChannelName = 'pw_realtime_test_channel_join_leave'
       await joinChannel(page, testChannelName)
 
       await expect(page.getByText('Listening', { exact: true })).toBeVisible({ timeout: 10000 })
       await expect(page.getByRole('button', { name: `Channel: ${testChannelName}` })).toBeVisible()
 
-      await leaveChannel(page)
+      await leaveChannel(page, testInfo)
 
       await expect(page.getByRole('button', { name: 'Join a channel' })).toBeVisible()
     })
 
-    test('start/stop listening button works', async ({ page }) => {
+    test('start/stop listening button works', async ({ page }, testInfo) => {
       const testChannelName = 'pw_realtime_test_channel_listening'
       await joinChannel(page, testChannelName)
 
@@ -72,18 +74,18 @@ test.describe('Realtime Inspector', () => {
 
       await expect(page.getByText('Listening', { exact: true })).toBeVisible({ timeout: 10000 })
 
-      await leaveChannel(page)
+      await leaveChannel(page, testInfo)
     })
   })
 
   test.describe('Broadcast Messages', () => {
-    test('broadcast messages appear in the UI when listening', async ({ page }) => {
+    test('broadcast messages appear in the UI when listening', async ({ page }, testInfo) => {
       const testChannelName = 'pw_realtime_test_channel_broadcast_ui'
       await joinChannel(page, testChannelName)
 
       await expect(page.getByText('Listening', { exact: true })).toBeVisible({ timeout: 10000 })
 
-      await openBroadcastModal(page)
+      await openBroadcastModal(page, testInfo)
       await page.getByRole('button', { name: 'Confirm' }).click()
 
       await expect(page.getByText('Successfully broadcasted message')).toBeVisible({
@@ -96,14 +98,14 @@ test.describe('Realtime Inspector', () => {
       const count = await getMessageCount(page)
       expect(count).toBeGreaterThanOrEqual(1)
 
-      await leaveChannel(page)
+      await leaveChannel(page, testInfo)
     })
 
-    test('clicking broadcast message shows detail panel', async ({ page }) => {
+    test('clicking broadcast message shows detail panel', async ({ page }, testInfo) => {
       const testChannelName = 'pw_realtime_test_channel_broadcast_details'
       await joinChannel(page, testChannelName)
 
-      await openBroadcastModal(page)
+      await openBroadcastModal(page, testInfo)
       await page.getByRole('button', { name: 'Confirm' }).click()
       await expect(page.getByText('Successfully broadcasted message')).toBeVisible()
       await expect(page.getByText('Broadcast a message to all clients')).not.toBeVisible()
@@ -123,15 +125,16 @@ test.describe('Realtime Inspector', () => {
         .click()
 
       await expect(page.getByText('Timestamp')).toBeVisible()
+      await runAxeCheck(page, testInfo, 'Realtime Inspector - Message Detail Panel')
 
-      await leaveChannel(page)
+      await leaveChannel(page, testInfo)
     })
 
-    test('broadcast modal validates JSON payload', async ({ page }) => {
+    test('broadcast modal validates JSON payload', async ({ page }, testInfo) => {
       const testChannelName = 'pw_realtime_test_channel_broadcast_json'
       await joinChannel(page, testChannelName)
 
-      await openBroadcastModal(page)
+      await openBroadcastModal(page, testInfo)
 
       await page.getByRole('textbox', { name: /Editor content/i }).focus()
       await page.keyboard.press('ControlOrMeta+KeyA')
@@ -143,17 +146,17 @@ test.describe('Realtime Inspector', () => {
 
       await page.getByRole('button', { name: 'Cancel' }).click()
 
-      await leaveChannel(page)
+      await leaveChannel(page, testInfo)
     })
   })
 
   test.describe('Message Display', () => {
-    test('messages counter shows correct count', async ({ page }) => {
+    test('messages counter shows correct count', async ({ page }, testInfo) => {
       await joinChannel(page, `pw_realtime_test_channel_counter`)
 
       const initialCount = await getMessageCount(page)
 
-      await openBroadcastModal(page)
+      await openBroadcastModal(page, testInfo)
       await page.getByRole('button', { name: 'Confirm' }).click()
       await expect(page.getByText('Successfully broadcasted message')).toBeVisible({
         timeout: 10000,
@@ -164,7 +167,7 @@ test.describe('Realtime Inspector', () => {
       const newCount = await getMessageCount(page)
       expect(newCount).toBeGreaterThan(initialCount)
 
-      await leaveChannel(page)
+      await leaveChannel(page, testInfo)
     })
   })
 })

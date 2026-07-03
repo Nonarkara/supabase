@@ -1,0 +1,9 @@
+{
+  "aria-required-children": 1,
+  "aria-required-parent": 2,
+  "button-name": 1,
+  "color-contrast": 5,
+  "list": 3,
+  "listitem": 12,
+  "scrollable-region-focusable": 1
+}

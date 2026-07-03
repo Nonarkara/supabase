@@ -10,12 +10,15 @@ test.describe('auth users list refresh', () => {
     await navigateToAuthUsers(page, ref)
   })
 
-  test('should automatically refresh users list after creating a user', async ({ page, ref }) => {
+  test('should automatically refresh users list after creating a user', async ({
+    page,
+    ref,
+  }, testInfo) => {
     const testEmail = `test-create-${Date.now()}@example.com`
     const testPassword = 'testpassword123'
 
     // Create user via UI - this verifies the user appears in the table
-    await createUserViaUI(page, ref, testEmail, testPassword)
+    await createUserViaUI(page, ref, testEmail, testPassword, testInfo)
 
     // Verify the user details are correct
     const userRow = page.getByRole('row').filter({ hasText: testEmail })
@@ -23,13 +26,13 @@ test.describe('auth users list refresh', () => {
     await expect(userRow.getByText('Email')).toBeVisible()
 
     // Clean up: delete the user - this verifies the user is removed from the table
-    await deleteUserViaUI(page, ref, testEmail)
+    await deleteUserViaUI(page, ref, testEmail, testInfo)
   })
 
   test('should automatically refresh users list after creating multiple users', async ({
     page,
     ref,
-  }) => {
+  }, testInfo) => {
     const testUsers = [
       { email: `test-multi-1-${Date.now()}@example.com`, password: 'testpassword123' },
       { email: `test-multi-2-${Date.now()}@example.com`, password: 'testpassword123' },
@@ -38,12 +41,12 @@ test.describe('auth users list refresh', () => {
 
     // Create multiple users - each creation verifies the user appears in the table
     for (const user of testUsers) {
-      await createUserViaUI(page, ref, user.email, user.password)
+      await createUserViaUI(page, ref, user.email, user.password, testInfo)
     }
 
     // Clean up: delete all test users - each deletion verifies the user is removed
     for (const user of testUsers) {
-      await deleteUserViaUI(page, ref, user.email)
+      await deleteUserViaUI(page, ref, user.email, testInfo)
     }
   })
 })

@@ -1,5 +1,6 @@
-import { expect, Page } from '@playwright/test'
+import { expect, Page, TestInfo } from '@playwright/test'
 
+import { runAxeCheck } from './axe-helpers.js'
 import { dismissToastsIfAny } from './dismiss-toast.js'
 import { toUrl } from './to-url.js'
 import { waitForApiResponse } from './wait-for-response.js'
@@ -28,7 +29,8 @@ export const createBucket = async (
   page: Page,
   ref: string,
   bucketName: string,
-  isPublic: boolean = false
+  isPublic: boolean = false,
+  testInfo?: TestInfo
 ) => {
   await navigateToStorageFiles(page, ref)
   // Check if bucket already exists
@@ -47,6 +49,8 @@ export const createBucket = async (
   const nameInput = page.getByRole('textbox', { name: 'Bucket name' })
   await expect(nameInput, 'Bucket name input should be visible').toBeVisible()
   await nameInput.fill(bucketName)
+
+  if (testInfo) await runAxeCheck(page, testInfo, 'Storage - Create Bucket Dialog')
 
   // Toggle public setting if needed
   if (isPublic) {
@@ -72,7 +76,12 @@ export const createBucket = async (
  * @param ref - Project reference
  * @param bucketName - Name of the bucket to delete
  */
-export const deleteBucket = async (page: Page, ref: string, bucketName: string) => {
+export const deleteBucket = async (
+  page: Page,
+  ref: string,
+  bucketName: string,
+  testInfo?: TestInfo
+) => {
   // Check if bucket exists
   const bucketRow = page.getByRole('row').filter({ hasText: bucketName })
   if ((await bucketRow.count()) === 0) return
@@ -92,6 +101,9 @@ export const deleteBucket = async (page: Page, ref: string, bucketName: string) 
   await expect(confirmInput, 'Confirmation input should be visible').toBeVisible({
     timeout: 15_000,
   })
+
+  if (testInfo) await runAxeCheck(page, testInfo, 'Storage - Delete Bucket Confirmation')
+
   await confirmInput.fill(bucketName)
 
   // Wait for API call and click Delete bucket button
@@ -191,7 +203,7 @@ export const uploadFile = async (page: Page, filePath: string, fileName: string)
  * @param page - Playwright page instance
  * @param itemName - Name of the file or folder to delete
  */
-export const deleteItem = async (page: Page, itemName: string) => {
+export const deleteItem = async (page: Page, itemName: string, testInfo?: TestInfo) => {
   // Right-click on the item to open context menu
   const item = page.getByTitle(itemName)
   await expect(item, `Item ${itemName} should be visible`).toBeVisible()
@@ -199,6 +211,8 @@ export const deleteItem = async (page: Page, itemName: string) => {
 
   // Click delete option from context menu
   await page.getByRole('menuitem', { name: 'Delete' }).click()
+
+  if (testInfo) await runAxeCheck(page, testInfo, 'Storage - Delete File/Folder Confirmation')
 
   // Confirm deletion in the modal
   await page.getByRole('button', { name: 'Submit' }).click()

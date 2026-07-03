@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test'
 
+import { runAxeCheck } from '../utils/axe-helpers.js'
 import { query } from '../utils/db/index.js'
 import { test, withSetupCleanup } from '../utils/test.js'
 import { toUrl } from '../utils/to-url.js'
@@ -17,7 +18,7 @@ test.describe('column editor complex types', () => {
   test('editing an array column preserves its type and displays it as type[]', async ({
     page,
     ref,
-  }) => {
+  }, testInfo) => {
     const tableName = 'pw_ct_arr_rt'
     const colName = 'tags'
 
@@ -49,6 +50,7 @@ test.describe('column editor complex types', () => {
       exact: true,
     })
     await expect(columnEditor).toBeVisible()
+    await runAxeCheck(page, testInfo, 'Column Editor Types - Edit Column Dialog')
 
     // The base type should render without the array-column's leading underscore
     // (pg-meta emits `_int4` for `int4[]`), and the array checkbox should reflect
@@ -84,7 +86,7 @@ test.describe('column editor complex types', () => {
   test('editing a non-public-schema enum column preserves its schema-qualified type', async ({
     page,
     ref,
-  }) => {
+  }, testInfo) => {
     const tableName = 'pw_ct_enum_rt'
     const schemaName = 'pw_ct_enum_schema'
     const enumName = 'pw_ct_status'
@@ -126,6 +128,7 @@ test.describe('column editor complex types', () => {
       exact: true,
     })
     await expect(columnEditor).toBeVisible()
+    await runAxeCheck(page, testInfo, 'Column Editor Types - Edit Column Dialog')
 
     // The type dropdown must show the schema-qualified name, not the bare enum name -
     // otherwise a save would silently drop the format_schema and point at public.<enumName>.
@@ -153,7 +156,7 @@ test.describe('column editor complex types', () => {
   test('FK selector flags a mismatch between an array column and a scalar column of the same base type', async ({
     page,
     ref,
-  }) => {
+  }, testInfo) => {
     const sourceTableName = 'pw_ct_fk_arr_mismatch_src'
     const targetTableName = 'pw_ct_fk_arr_mismatch_tgt'
 
@@ -205,6 +208,7 @@ test.describe('column editor complex types', () => {
       page.getByText('Column types do not match'),
       'An array column and a scalar column of the same base type should be flagged as a mismatch'
     ).toBeVisible()
+    await runAxeCheck(page, testInfo, 'Column Editor Types - Foreign Key Selector')
     await expect(page.getByRole('button', { name: 'Save' }).last()).toBeDisabled()
   })
 
@@ -280,7 +284,7 @@ test.describe('column editor complex types', () => {
   test('FK selector allows and creates a relation between two matching array columns', async ({
     page,
     ref,
-  }) => {
+  }, testInfo) => {
     const sourceTableName = 'pw_ct_fk_arr_match_src'
     const targetTableName = 'pw_ct_fk_arr_match_tgt'
 
@@ -332,6 +336,7 @@ test.describe('column editor complex types', () => {
 
     const saveButton = page.getByRole('button', { name: 'Save' }).last()
     await expect(saveButton).toBeEnabled()
+    await runAxeCheck(page, testInfo, 'Column Editor Types - Foreign Key Selector')
 
     const fkCreatePromise = waitForApiResponseWithTimeout(page, (response) =>
       response.url().includes('query?key=')

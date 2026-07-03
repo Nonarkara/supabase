@@ -1,4 +1,6 @@
-import { expect, Page } from '@playwright/test'
+import { expect, Page, TestInfo } from '@playwright/test'
+
+import { runAxeCheck } from './axe-helpers.js'
 import { toUrl } from './to-url.js'
 
 export async function navigateToRealtimeInspector(page: Page, ref: string) {
@@ -14,9 +16,10 @@ export async function joinChannel(page: Page, channelName: string) {
   await expect(page.getByText('Listening', { exact: true })).toBeVisible({ timeout: 10000 })
 }
 
-export async function leaveChannel(page: Page) {
+export async function leaveChannel(page: Page, testInfo: TestInfo) {
   await page.getByRole('button', { name: /Channel:/ }).click()
   await expect(page.getByRole('button', { name: 'Leave channel' })).toBeVisible({ timeout: 5000 })
+  await runAxeCheck(page, testInfo, 'Realtime Inspector - Channel Info Popover')
   await page.getByRole('button', { name: 'Leave channel' }).click()
   await expect(page.getByRole('button', { name: 'Join a channel' })).toBeVisible({ timeout: 5000 })
 }
@@ -35,16 +38,20 @@ export async function stopListening(page: Page) {
   await expect(page.getByRole('button', { name: 'Start listening' })).toBeVisible({ timeout: 5000 })
 }
 
-export async function openBroadcastModal(page: Page) {
+export async function openBroadcastModal(page: Page, testInfo: TestInfo) {
   const broadcastButton = page.getByRole('button', { name: 'Broadcast a message' })
   await expect(broadcastButton).toBeVisible({ timeout: 5000 })
   await broadcastButton.click()
   await expect(page.getByText('Broadcast a message to all clients')).toBeVisible({ timeout: 5000 })
+  await runAxeCheck(page, testInfo, 'Realtime Inspector - Broadcast Message Modal')
 }
 
 export async function waitForRealtimeMessage(page: Page, options?: { timeout?: number }) {
   const timeout = options?.timeout ?? 30000
-  const gridRow = page.getByRole('row').filter({ hasText: /^\d{4}-\d{2}-\d{2}/ }).first()
+  const gridRow = page
+    .getByRole('row')
+    .filter({ hasText: /^\d{4}-\d{2}-\d{2}/ })
+    .first()
   await expect(gridRow).toBeVisible({ timeout })
   return gridRow
 }

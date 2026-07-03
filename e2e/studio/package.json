@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui"
+    "e2e:ui": "playwright test --ui",
+    "e2e:a11y-baseline": "UPDATE_A11Y_BASELINE=1 playwright test"
   },
   "keywords": [],
   "author": "",
@@ -19,8 +20,11 @@
     "otpauth": "^9.4.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@faker-js/faker": "^9.9.0",
     "api-types": "workspace:*",
+    "axe-core": "^4.12.1",
+    "axe-html-reporter": "^2.2.11",
     "tsx": "catalog:"
   }
 }

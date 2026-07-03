@@ -1,9 +1,14 @@
 import { expect } from '@playwright/test'
+
+import { runAxeCheck } from '../utils/axe-helpers.js'
 import { test } from '../utils/test.js'
 import { toUrl } from '../utils/to-url.js'
 
 test.describe('AI Assistant', async () => {
-  test('Can send a message to the assistant and receive a response', async ({ page, ref }) => {
+  test('Can send a message to the assistant and receive a response', async ({
+    page,
+    ref,
+  }, testInfo) => {
     // Skip the test if the OPENAI_API_KEY is not set
     test.skip(!process.env.OPENAI_API_KEY, 'OPENAI_API_KEY is not set')
 
@@ -17,6 +22,7 @@ test.describe('AI Assistant', async () => {
 
     // Wait for the assistant panel to be visible
     await expect(page.getByRole('heading', { name: 'How can I assist you?' })).toBeVisible()
+    await runAxeCheck(page, testInfo, 'Assistant - Chat Panel')
 
     // Type "hello" in the chat input
     const chatInput = page.getByRole('textbox', { name: 'Chat to Postgres...' })

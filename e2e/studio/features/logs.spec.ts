@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test'
 
+import { runAxeCheck } from '../utils/axe-helpers.js'
 import { test } from '../utils/test.js'
 import { toUrl } from '../utils/to-url.js'
 
@@ -44,7 +45,7 @@ test.beforeEach(async ({ context }) => {
 
 test.describe('Logs', () => {
   for (const logPage of LOGS_PAGES) {
-    test(`${logPage.label} logs page`, async ({ page, ref }) => {
+    test(`${logPage.label} logs page`, async ({ page, ref }, testInfo) => {
       /**
        * Navigates to Logs
        */
@@ -84,6 +85,8 @@ test.describe('Logs', () => {
       await expect(tabPanel, {
         message: 'Log selection panel should be visible after clicking a log',
       }).toBeVisible()
+
+      await runAxeCheck(page, testInfo, 'Logs - Log Details Panel')
 
       // Assert known fixed values instead of extracting text
       await expect(tabPanel, {

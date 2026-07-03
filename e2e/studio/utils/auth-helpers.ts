@@ -1,8 +1,16 @@
-import { expect, Page } from '@playwright/test'
-import { waitForApiResponse } from './wait-for-response.js'
-import { toUrl } from './to-url.js'
+import { expect, Page, TestInfo } from '@playwright/test'
 
-export const createUserViaUI = async (page: Page, ref: string, email: string, password: string) => {
+import { runAxeCheck } from './axe-helpers.js'
+import { toUrl } from './to-url.js'
+import { waitForApiResponse } from './wait-for-response.js'
+
+export const createUserViaUI = async (
+  page: Page,
+  ref: string,
+  email: string,
+  password: string,
+  testInfo?: TestInfo
+) => {
   // Open the Add user dropdown
   await page.getByRole('button', { name: 'Add user' }).click()
 
@@ -11,6 +19,8 @@ export const createUserViaUI = async (page: Page, ref: string, email: string, pa
 
   // Wait for dialog to be visible
   await expect(page.getByRole('dialog', { name: 'Create a new user' })).toBeVisible()
+
+  if (testInfo) await runAxeCheck(page, testInfo, 'Auth Users - Create User Dialog')
 
   // Fill in email
   await page.getByRole('textbox', { name: 'user@example.com' }).fill(email)
@@ -41,7 +51,12 @@ export const createUserViaUI = async (page: Page, ref: string, email: string, pa
   ).toBeVisible({ timeout: 10_000 })
 }
 
-export const deleteUserViaUI = async (page: Page, ref: string, email: string) => {
+export const deleteUserViaUI = async (
+  page: Page,
+  ref: string,
+  email: string,
+  testInfo?: TestInfo
+) => {
   // Find the user row by email and click the checkbox
   const userRow = page.getByRole('row').filter({ hasText: email })
   await expect(userRow, `User row with email ${email} should be visible`).toBeVisible()
@@ -54,6 +69,8 @@ export const deleteUserViaUI = async (page: Page, ref: string, email: string) =>
 
   // Wait for confirmation dialog
   await expect(page.getByRole('dialog', { name: 'Confirm to delete 1 user' })).toBeVisible()
+
+  if (testInfo) await runAxeCheck(page, testInfo, 'Auth Users - Delete User Confirmation')
 
   // Set up API waiters BEFORE clicking the delete button
   const deleteUserPromise = waitForApiResponse(page, 'platform/auth', ref, 'users/', {
