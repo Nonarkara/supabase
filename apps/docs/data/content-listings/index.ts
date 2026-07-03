@@ -1,7 +1,14 @@
 import type { ContentListingGroup } from '~/lib/content-listings.schema'
 
-import { authGetStarted, authNextSteps, authPricing } from './auth.data'
-import { databaseGetStarted, databaseNextSteps } from './database.data'
+import {
+  authGetStarted,
+  authHooksAvailable,
+  authNextSteps,
+  authOauthServerSetup,
+  authPricing,
+  authServerSideFrameworks,
+} from './auth.data'
+import { databaseGetStarted, databaseNextSteps, databaseServerlessDrivers } from './database.data'
 import {
   functionsExamplesAiMedia,
   functionsExamplesMessaging,
@@ -18,8 +25,12 @@ const ALL_GROUPS: readonly ContentListingGroup[] = [
   authGetStarted,
   authPricing,
   authNextSteps,
+  authServerSideFrameworks,
+  authHooksAvailable,
+  authOauthServerSetup,
   databaseGetStarted,
   databaseNextSteps,
+  databaseServerlessDrivers,
   functionsGetStarted,
   functionsExamplesSupabase,
   functionsExamplesWebhooksPayments,

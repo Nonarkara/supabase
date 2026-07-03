@@ -43,6 +43,30 @@ export const databaseGetStarted: ContentListingGroup = {
   ],
 }
 
+export const databaseServerlessDrivers: ContentListingGroup = {
+  id: 'database-serverless-drivers',
+  heading: 'Quickstart',
+  headingLevel: 'h3',
+  description:
+    'Vercel Deploy Templates that use the Vercel Deploy Integration to automatically configure your connection strings as environment variables:',
+  type: 'grid',
+  columns: 2,
+  items: [
+    {
+      title: 'supabase-js',
+      href: 'https://supabase.link/nextjs-with-supabase-starter',
+      description:
+        'A Next.js App Router template configured with cookie-based auth using Supabase, TypeScript and Tailwind CSS.',
+    },
+    {
+      title: 'Kysely',
+      href: 'https://supabase.link/nextjs-supabase-kysely',
+      description:
+        'Basic Next.js template that uses Supabase as the database and Kysely as the query builder.',
+    },
+  ],
+}
+
 export const databaseNextSteps: ContentListingGroup = {
   id: 'database-next-steps',
   heading: 'Next steps',

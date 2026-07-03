@@ -24,6 +24,90 @@ export const authGetStarted: ContentListingGroup = {
   ],
 }
 
+export const authServerSideFrameworks: ContentListingGroup = {
+  id: 'auth-server-side-frameworks',
+  heading: 'Framework quickstarts',
+  type: 'grid',
+  items: [
+    {
+      title: 'Next.js',
+      href: '/guides/auth/server-side/nextjs',
+      icon: '/docs/img/icons/nextjs-icon',
+      description:
+        'Automatically configure Supabase in Next.js to use cookies, making your user and their session available on the client and server.',
+    },
+    {
+      title: 'SvelteKit',
+      href: '/guides/auth/server-side/sveltekit',
+      description:
+        'Automatically configure Supabase in SvelteKit to use cookies, making your user and their session available on the client and server.',
+    },
+  ],
+}
+
+export const authHooksAvailable: ContentListingGroup = {
+  id: 'auth-hooks-available',
+  heading: 'Available Hooks',
+  type: 'grid',
+  items: [
+    {
+      title: 'Custom Access Token',
+      href: '/guides/auth/auth-hooks/custom-access-token-hook',
+      description: 'Customize the access token issued by Supabase Auth.',
+    },
+    {
+      title: 'Send SMS',
+      href: '/guides/auth/auth-hooks/send-sms-hook',
+      description: 'Use a custom SMS provider to send authentication messages.',
+    },
+    {
+      title: 'Send Email',
+      href: '/guides/auth/auth-hooks/send-email-hook',
+      description: 'Use a custom email provider to send authentication messages.',
+    },
+    {
+      title: 'MFA Verification',
+      href: '/guides/auth/auth-hooks/mfa-verification-hook',
+      description: 'Add additional checks to the MFA verification flow.',
+    },
+    {
+      title: 'Password Verification',
+      href: '/guides/auth/auth-hooks/password-verification-hook',
+      description: 'Add additional checks to the password verification flow.',
+    },
+  ],
+}
+
+export const authOauthServerSetup: ContentListingGroup = {
+  id: 'auth-oauth-server-setup',
+  heading: 'Set up OAuth 2.1 server',
+  type: 'grid',
+  columns: 2,
+  items: [
+    {
+      title: 'Getting Started',
+      href: '/guides/auth/oauth-server/getting-started',
+      description:
+        'Enable OAuth 2.1, configure your authorization endpoint, and register your first client.',
+    },
+    {
+      title: 'OAuth Flows',
+      href: '/guides/auth/oauth-server/oauth-flows',
+      description: 'Detailed walkthrough of authorization code and refresh token flows.',
+    },
+    {
+      title: 'MCP Authentication',
+      href: '/guides/auth/oauth-server/mcp-authentication',
+      description: 'Authenticate AI agents and LLM tools using Model Context Protocol.',
+    },
+    {
+      title: 'Token Security & RLS',
+      href: '/guides/auth/oauth-server/token-security',
+      description: 'Control data access with Row Level Security policies for OAuth clients.',
+    },
+  ],
+}
+
 export const authPricing: ContentListingGroup = {
   id: 'auth-pricing',
   heading: 'Pricing',
