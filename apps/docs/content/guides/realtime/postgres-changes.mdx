@@ -320,7 +320,9 @@ changes = supabase.channel('schema-db-changes').on_postgres_changes(
 
 The channel name can be any string except 'realtime'.
 
-### Listening to `INSERT` events
+### Listening to specific events
+
+Use the `event` parameter to listen only to a specific database event. `event` can be `INSERT`, `UPDATE`, `DELETE`, or `*` to listen to all changes.
 
 <Tabs
   scrollable
@@ -331,15 +333,13 @@ The channel name can be any string except 'realtime'.
 >
 <TabPanel id="js" label="JavaScript">
 
-Use the `event` parameter to listen only to database `INSERT`s:
-
 ```js
 const changes = supabase
   .channel('schema-db-changes')
   .on(
     'postgres_changes',
     {
-      event: 'INSERT', // Listen only to INSERTs
+      event: 'INSERT', // Listen only to INSERTs. Use 'UPDATE', 'DELETE', or '*' for other events.
       schema: 'public',
     },
     (payload) => console.log(payload)
@@ -352,9 +352,10 @@ const changes = supabase
 <TabPanel id="dart" label="Dart">
 
 ```dart
-final changes = supabase
+supabase
     .channel('schema-db-changes')
     .onPostgresChanges(
+        // Use .update, .delete, or .all for other events
         event: PostgresChangeEvent.insert,
         schema: 'public',
         callback: (payload) => print(payload))
@@ -366,7 +367,7 @@ final changes = supabase
 <$Show if="sdk:swift">
 <TabPanel id="swift" label="Swift">
 
-Use `InsertAction.self` as type to listen only to database `INSERT`s:
+Pass the action type to select the event. Use `InsertAction.self`, `UpdateAction.self`, `DeleteAction.self`, or `AnyAction.self` to listen to all changes.
 
 ```swift
 let myChannel = await supabase.channel("schema-db-changes")
@@ -385,7 +386,7 @@ for await change in changes {
 <$Show if="sdk:kotlin">
 <TabPanel id="kotlin" label="Kotlin">
 
-Use `PostgresAction.Insert` as type to listen only to database `INSERT`s:
+Pass the action type to select the event. Use `PostgresAction.Insert`, `PostgresAction.Update`, `PostgresAction.Delete`, or `PostgresAction` to listen to all changes.
 
 ```kotlin
 val myChannel = supabase.channel("db-changes")
@@ -408,209 +409,7 @@ myChannel.subscribe()
 
 ```python
 changes = supabase.channel('schema-db-changes').on_postgres_changes(
-  "INSERT", # Listen only to INSERTs
-  schema="public",
-  callback=lambda payload: print(payload)
-)
-.subscribe()
-```
-
-</TabPanel>
-</$Show>
-</Tabs>
-
-The channel name can be any string except 'realtime'.
-
-### Listening to `UPDATE` events
-
-<Tabs
-  scrollable
-  size="small"
-  type="underlined"
-  defaultActiveId="js"
-  queryGroup="language"
->
-<TabPanel id="js" label="JavaScript">
-
-Use the `event` parameter to listen only to database `UPDATE`s:
-
-```js
-const changes = supabase
-  .channel('schema-db-changes')
-  .on(
-    'postgres_changes',
-    {
-      event: 'UPDATE', // Listen only to UPDATEs
-      schema: 'public',
-    },
-    (payload) => console.log(payload)
-  )
-  .subscribe()
-```
-
-</TabPanel>
-<$Show if="sdk:dart">
-<TabPanel id="dart" label="Dart">
-
-```dart
-supabase
-    .channel('schema-db-changes')
-    .onPostgresChanges(
-        event: PostgresChangeEvent.update, // Listen only to UPDATEs
-        schema: 'public',
-        callback: (payload) => print(payload))
-    .subscribe();
-```
-
-</TabPanel>
-</$Show>
-<$Show if="sdk:swift">
-<TabPanel id="swift" label="Swift">
-
-Use `UpdateAction.self` as type to listen only to database `UPDATE`s:
-
-```swift
-let myChannel = await supabase.channel("schema-db-changes")
-
-let changes = await myChannel.postgresChange(UpdateAction.self, schema: "public")
-
-await myChannel.subscribe()
-
-for await change in changes {
-  print(change.oldRecord, change.record)
-}
-```
-
-</TabPanel>
-</$Show>
-<$Show if="sdk:kotlin">
-<TabPanel id="kotlin" label="Kotlin">
-
-Use `PostgresAction.Update` as type to listen only to database `UPDATE`s:
-
-```kotlin
-val myChannel = supabase.channel("db-changes")
-
-val changes = myChannel.postgresChangeFlow<PostgresAction.Update>(schema = "public")
-
-changes
-    .onEach {
-        println(it.record)
-    }
-    .launchIn(yourCoroutineScope)
-
-myChannel.subscribe()
-```
-
-</TabPanel>
-</$Show>
-<$Show if="sdk:python">
-<TabPanel id="python" label="Python">
-
-```python
-changes = supabase.channel('schema-db-changes').on_postgres_changes(
-  "UPDATE", # Listen only to UPDATEs
-  schema="public",
-  callback=lambda payload: print(payload)
-)
-.subscribe()
-```
-
-</TabPanel>
-</$Show>
-</Tabs>
-
-The channel name can be any string except 'realtime'.
-
-### Listening to `DELETE` events
-
-<Tabs
-  scrollable
-  size="small"
-  type="underlined"
-  defaultActiveId="js"
-  queryGroup="language"
->
-<TabPanel id="js" label="JavaScript">
-
-Use the `event` parameter to listen only to database `DELETE`s:
-
-```js
-const changes = supabase
-  .channel('schema-db-changes')
-  .on(
-    'postgres_changes',
-    {
-      event: 'DELETE', // Listen only to DELETEs
-      schema: 'public',
-    },
-    (payload) => console.log(payload)
-  )
-  .subscribe()
-```
-
-</TabPanel>
-<$Show if="sdk:dart">
-<TabPanel id="dart" label="Dart">
-
-```dart
-supabase
-    .channel('schema-db-changes')
-    .onPostgresChanges(
-        event: PostgresChangeEvent.delete, // Listen only to DELETEs
-        schema: 'public',
-        callback: (payload) => print(payload))
-    .subscribe();
-```
-
-</TabPanel>
-</$Show>
-<$Show if="sdk:swift">
-<TabPanel id="swift" label="Swift">
-
-Use `DeleteAction.self` as type to listen only to database `DELETE`s:
-
-```swift
-let myChannel = await supabase.channel("schema-db-changes")
-
-let changes = await myChannel.postgresChange(DeleteAction.self, schema: "public")
-
-await myChannel.subscribe()
-
-for await change in changes {
-  print(change.oldRecord)
-}
-```
-
-</TabPanel>
-</$Show>
-<$Show if="sdk:kotlin">
-<TabPanel id="kotlin" label="Kotlin">
-
-Use `PostgresAction.Delete` as type to listen only to database `DELETE`s:
-
-```kotlin
-val myChannel = supabase.channel("db-changes")
-
-val changes = myChannel.postgresChangeFlow<PostgresAction.Delete>(schema = "public")
-
-changes
-    .onEach {
-        println(it.oldRecord)
-    }
-    .launchIn(yourCoroutineScope)
-
-myChannel.subscribe()
-```
-
-</TabPanel>
-</$Show>
-<$Show if="sdk:python">
-<TabPanel id="python" label="Python">
-
-```python
-changes = supabase.channel('schema-db-changes').on_postgres_changes(
-  "DELETE", # Listen only to DELETEs
+  "INSERT", # Listen only to INSERTs. Use "UPDATE", "DELETE", or "*" for other events.
   schema="public",
   callback=lambda payload: print(payload)
 )
@@ -3142,68 +2941,6 @@ changes = supabase.channel('db-changes').on_postgres_changes(
   callback=lambda payload: print(payload)
 )
 .subscribe()
-```
-
-</TabPanel>
-</$Show>
-</Tabs>
-
-### Refreshed tokens
-
-You will need to refresh tokens on your own, but once generated, you can pass them to Realtime.
-
-<Tabs
-  scrollable
-  size="small"
-  type="underlined"
-  defaultActiveId="js"
-  queryGroup="language"
->
-<TabPanel id="js" label="JavaScript">
-
-For example, if you're using the `supabase-js` `v2` client then you can pass your token like this:
-
-```js
-// Client setup
-
-supabase.realtime.setAuth('fresh-token')
-```
-
-</TabPanel>
-<$Show if="sdk:dart">
-<TabPanel id="dart" label="Dart">
-
-```dart
-supabase.realtime.setAuth('fresh-token');
-```
-
-</TabPanel>
-</$Show>
-<$Show if="sdk:swift">
-<TabPanel id="swift" label="Swift">
-
-```swift
-await supabase.realtime.setAuth("fresh-token")
-```
-
-</TabPanel>
-</$Show>
-<$Show if="sdk:kotlin">
-<TabPanel id="kotlin" label="Kotlin">
-
-In Kotlin, you have to update the token manually per channel:
-
-```kotlin
-myChannel.updateAuth("fresh-token")
-```
-
-</TabPanel>
-</$Show>
-<$Show if="sdk:python">
-<TabPanel id="python" label="Python">
-
-```python
-supabase.realtime.set_auth('fresh-token')
 ```
 
 </TabPanel>

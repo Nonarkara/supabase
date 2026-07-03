@@ -33,7 +33,7 @@ export default function RealtimeLimitsEstimater({}) {
   }
 
   const [computeAddOn, setComputeAddOn] = useState('micro')
-  const [filters, setFilters] = useState(false)
+  const filters = false
   const [rls, setRLS] = useState(false)
   const [concurrency, setConcurrency] = useState(500)
 
@@ -45,13 +45,6 @@ export default function RealtimeLimitsEstimater({}) {
     setComputeAddOn(val)
     setConcurrency(500)
     setLimits(findTableValue({ computeAddOn: val, filters, rls, concurrency: 500 }))
-  }
-
-  const handleFiltersSelection = (value) => {
-    const val = value.toLowerCase() === 'true'
-    setFilters(val)
-    setConcurrency(500)
-    setLimits(findTableValue({ computeAddOn, filters: val, rls, concurrency: 500 }))
   }
 
   const handleRLSSelection = (value) => {
@@ -83,18 +76,6 @@ export default function RealtimeLimitsEstimater({}) {
                   {option.label}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="filters">Filters:</Label>
-          <Select onValueChange={handleFiltersSelection} value={filters.toString()} disabled>
-            <SelectTrigger id="filters">
-              <SelectValue className="font-mono" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="false">No</SelectItem>
-              <SelectItem value="true">Yes</SelectItem>
             </SelectContent>
           </Select>
         </div>
