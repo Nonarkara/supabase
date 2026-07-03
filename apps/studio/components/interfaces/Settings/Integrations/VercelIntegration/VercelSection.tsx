@@ -138,6 +138,9 @@ export const VercelSection = ({ isProjectScoped }: { isProjectScoped: boolean })
     connections.length,
     'connection'
   )} `
+  const description = isProjectScoped
+    ? 'Connect this Supabase project to one or more Vercel projects. Supabase syncs environment variables for each project connection.'
+    : 'Connect Vercel projects to Supabase projects in this organization. Supabase syncs environment variables for each project connection.'
 
   return (
     <PageSection>
@@ -145,12 +148,8 @@ export const VercelSection = ({ isProjectScoped }: { isProjectScoped: boolean })
         <div className="flex flex-1 items-start gap-6">
           <IntegrationSectionIcon title="vercel" />
           <PageSectionSummary>
-            <PageSectionTitle>Vercel Integration</PageSectionTitle>
-            <PageSectionDescription>
-              Connect your Vercel teams to your Supabase organization. Supabase keeps environment
-              variables up to date in each assigned project. You can also link multiple Vercel
-              projects to the same Supabase project.
-            </PageSectionDescription>
+            <PageSectionTitle>Vercel integration</PageSectionTitle>
+            <PageSectionDescription>{description}</PageSectionDescription>
           </PageSectionSummary>
         </div>
       </PageSectionMeta>
@@ -221,9 +220,9 @@ export const VercelSection = ({ isProjectScoped }: { isProjectScoped: boolean })
                   disabled={isBranch}
                   href={integrationUrl}
                   icon={<ExternalLink />}
-                  disabledTooltip="Install Vercel Integration on your project's main branch"
+                  disabledTooltip="Install the Vercel integration on your project's main branch"
                 >
-                  Install Vercel Integration
+                  Install Vercel integration
                 </EmptyIntegrationConnection>
               )}
             </div>

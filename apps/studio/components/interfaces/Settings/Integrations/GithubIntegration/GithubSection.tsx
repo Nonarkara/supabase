@@ -119,7 +119,7 @@ export const GitHubSection = ({ isProjectScoped }: { isProjectScoped: boolean })
           <IntegrationSectionIcon title="github" />
           <PageSectionSummary>
             <PageSectionTitle>
-              {isProjectScoped ? 'GitHub Integration' : 'GitHub Connections'}
+              {isProjectScoped ? 'GitHub integration' : 'GitHub connections'}
             </PageSectionTitle>
             <PageSectionDescription>
               {isProjectScoped
