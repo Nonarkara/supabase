@@ -3351,7 +3351,7 @@ export const reference_server_v1 = {
   parent: '/reference',
   pkg: {
     name: '@supabase/server',
-    repo: 'https://github.com/supabase/supabase-js',
+    repo: 'https://github.com/supabase/server',
   },
 }
 
