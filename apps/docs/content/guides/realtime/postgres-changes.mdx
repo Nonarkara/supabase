@@ -3218,12 +3218,12 @@ You can't filter Delete events when tracking Postgres Changes. This limitation i
 
 ## Scaling Postgres Changes
 
-Postgres Changes authorizes every event against each subscriber. When you make a single change to a table with 100 subscribed users, Realtime performs 100 authorization checks — one per user — so throughput scales with the number of subscribers, not just the write rate. Changes are also processed on a single thread to preserve their order, which means larger compute add-ons don't meaningfully increase Postgres Changes throughput.
+Postgres Changes authorizes every event against each subscriber. When you make a single change to a table with 100 subscribed users, Realtime performs 100 authorization checks — one per user — so throughput scales with the number of subscribers, not the write rate. Changes are also processed on a single thread to preserve their order, which means larger compute add-ons don't meaningfully increase Postgres Changes throughput.
 
 For most applications this is plenty. To get the best performance:
 
 - Use [filters](#available-filters) and [column selection](#selecting-specific-columns) to send each client only the events and columns it needs.
-- Keep authorization cheap by writing simple, indexed [RLS policies](/docs/guides/database/postgres/row-level-security).
+- Keep authorization cheap by writing , indexed [RLS policies](/docs/guides/database/postgres/row-level-security).
 
 Use the estimator below to gauge the maximum throughput for your instance, and run your own benchmarks to confirm it fits your use case:
 
