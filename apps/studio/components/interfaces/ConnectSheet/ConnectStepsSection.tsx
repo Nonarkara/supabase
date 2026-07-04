@@ -262,7 +262,7 @@ export function ConnectStepsSection({ steps, state, projectKeys }: ConnectStepsS
             description="Client library database queries will not work until the Data API is enabled."
             actions={[
               <Button asChild key="enable" variant="default">
-                <Link href={`/project/${ref}/integrations/data_api/settings`}>Enable Data API</Link>
+                <Link href={`/project/${ref}/integrations/data_api`}>Enable Data API</Link>
               </Button>,
             ]}
           />
