@@ -167,3 +167,5 @@ keys.json
 examples/**/package-lock.json
 examples/**/yarn.lock
 examples/**/pnpm-lock.yaml
+backups/
+scripts/backup.sh
