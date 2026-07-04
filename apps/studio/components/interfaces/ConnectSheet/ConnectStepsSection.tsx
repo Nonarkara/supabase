@@ -232,7 +232,6 @@ export function ConnectStepsSection({ steps, state, projectKeys }: ConnectStepsS
 
   const shouldFetchDataApiStatus = shouldFetchDataApiConfig({
     mode: state.mode,
-    mcpFeatures: state.mcpFeatures,
   })
   const {
     isEnabled: isDataApiEnabled,
@@ -244,7 +243,6 @@ export function ConnectStepsSection({ steps, state, projectKeys }: ConnectStepsS
   })
   const showDataApiDisabledWarning = shouldShowDataApiDisabledWarning({
     mode: state.mode,
-    mcpFeatures: state.mcpFeatures,
     isDataApiEnabled,
     isPending: isDataApiConfigPending,
     isError: isDataApiConfigError,

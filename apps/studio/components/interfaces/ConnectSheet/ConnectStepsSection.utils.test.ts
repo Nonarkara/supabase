@@ -2,46 +2,27 @@ import { describe, expect, test } from 'vitest'
 
 import type { ConnectMode } from './Connect.types'
 import {
-  mcpSelectionRequiresDataApi,
   shouldFetchDataApiConfig,
   shouldShowDataApiDisabledWarning,
 } from './ConnectStepsSection.utils'
 
 const ALL_MODES: ConnectMode[] = ['framework', 'direct', 'orm', 'mcp', 'server']
-
-describe('mcpSelectionRequiresDataApi', () => {
-  test('returns true when no features are selected (server default includes database)', () => {
-    expect(mcpSelectionRequiresDataApi(undefined)).toBe(true)
-    expect(mcpSelectionRequiresDataApi([])).toBe(true)
-  })
-
-  test('returns true when database is selected', () => {
-    expect(mcpSelectionRequiresDataApi(['database'])).toBe(true)
-    expect(mcpSelectionRequiresDataApi(['docs', 'database'])).toBe(true)
-  })
-
-  test('returns false when database is not selected', () => {
-    expect(mcpSelectionRequiresDataApi(['docs'])).toBe(false)
-    expect(mcpSelectionRequiresDataApi(['docs', 'account'])).toBe(false)
-  })
-})
+const MCP_WITH_DATABASE_TOOLS = {
+  mode: 'mcp' as const,
+  mcpFeatures: ['database'],
+}
 
 describe('shouldFetchDataApiConfig', () => {
   test('returns true for framework mode', () => {
     expect(shouldFetchDataApiConfig({ mode: 'framework' })).toBe(true)
   })
 
-  test('returns true for mcp when database tools may be used', () => {
-    expect(shouldFetchDataApiConfig({ mode: 'mcp', mcpFeatures: [] })).toBe(true)
-    expect(shouldFetchDataApiConfig({ mode: 'mcp', mcpFeatures: ['database'] })).toBe(true)
-  })
-
-  test('returns false for mcp when database is excluded', () => {
-    expect(shouldFetchDataApiConfig({ mode: 'mcp', mcpFeatures: ['docs'] })).toBe(false)
-  })
-
-  test.each(['direct', 'orm', 'server'] as const)('returns false for %s mode', (mode) => {
+  test.each(['direct', 'orm', 'server', 'mcp'] as const)('returns false for %s mode', (mode) => {
     expect(shouldFetchDataApiConfig({ mode })).toBe(false)
+  })
+
+  test('returns false for mcp even when database tools are selected', () => {
+    expect(shouldFetchDataApiConfig(MCP_WITH_DATABASE_TOOLS)).toBe(false)
   })
 })
 
@@ -79,53 +60,39 @@ describe('shouldShowDataApiDisabledWarning', () => {
     ).toBe(true)
   })
 
-  test('returns true for mcp with database tools when Data API is disabled', () => {
-    expect(
-      shouldShowDataApiDisabledWarning({
-        mode: 'mcp',
-        mcpFeatures: ['database'],
-        isDataApiEnabled: false,
-        isPending: false,
-        isError: false,
-      })
-    ).toBe(true)
-  })
-
-  test('returns false for mcp without database tools when Data API is disabled', () => {
-    expect(
-      shouldShowDataApiDisabledWarning({
-        mode: 'mcp',
-        mcpFeatures: ['docs'],
-        isDataApiEnabled: false,
-        isPending: false,
-        isError: false,
-      })
-    ).toBe(false)
-  })
-
-  test('returns false for server when Data API is disabled', () => {
-    expect(
-      shouldShowDataApiDisabledWarning({
-        mode: 'server',
-        isDataApiEnabled: false,
-        isPending: false,
-        isError: false,
-      })
-    ).toBe(false)
-  })
-
-  test.each(['framework', 'mcp'] as const)(
-    'returns false when %s mode has Data API enabled',
+  test.each(['direct', 'orm', 'server', 'mcp'] as const)(
+    'returns false for %s when Data API is disabled',
     (mode) => {
       expect(
         shouldShowDataApiDisabledWarning({
           mode,
-          mcpFeatures: mode === 'mcp' ? ['database'] : undefined,
-          isDataApiEnabled: true,
+          isDataApiEnabled: false,
           isPending: false,
           isError: false,
         })
       ).toBe(false)
     }
   )
+
+  test('returns false for mcp with database tools selected when Data API is disabled', () => {
+    expect(
+      shouldShowDataApiDisabledWarning({
+        ...MCP_WITH_DATABASE_TOOLS,
+        isDataApiEnabled: false,
+        isPending: false,
+        isError: false,
+      })
+    ).toBe(false)
+  })
+
+  test('returns false when framework mode has Data API enabled', () => {
+    expect(
+      shouldShowDataApiDisabledWarning({
+        mode: 'framework',
+        isDataApiEnabled: true,
+        isPending: false,
+        isError: false,
+      })
+    ).toBe(false)
+  })
 })
